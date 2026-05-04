@@ -2,29 +2,73 @@ import Doctor from "../models/Doctor.js"
 
 export const getDoctors = async (req, res) => {
   try {
-    const { city, speciality, hospital, page = 1, limit = 12 } = req.query
+    const { city, speciality, hospital, page = 1, limit = 10, lat, lng } = req.query
     const filter = {}
     if (city)       filter.city = city
     if (speciality) filter.speciality = speciality
     if (hospital)   filter.hospital = hospital
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
+    const limitNum = parseInt(limit)
 
-    const [doctors, total] = await Promise.all([
-      Doctor.find(filter)
-        .sort({ rating: -1 })
-        .skip(skip)
-        .limit(parseInt(limit))
-        .select("name speciality hospital city experience fee rating available phone about"),
-      Doctor.countDocuments(filter)
-    ])
+    // Using aggregation to join with Hospital for lat/lng
+    const pipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "hospitals",
+          localField: "hospital",
+          foreignField: "name",
+          as: "hospitalInfo"
+        }
+      },
+      {
+        $project: {
+          name: 1, speciality: 1, hospital: 1, hospitalId: 1, 
+          city: 1, experience: 1, fee: 1, rating: 1, 
+          available: 1, phone: 1, about: 1, languages: 1, 
+          image: 1, slots: 1,
+          hLat: { $arrayElemAt: ["$hospitalInfo.lat", 0] },
+          hLng: { $arrayElemAt: ["$hospitalInfo.lng", 0] }
+        }
+      }
+    ]
+
+    const allDoctors = await Doctor.aggregate(pipeline)
+    
+    let processedDoctors = allDoctors;
+
+    if (lat && lng) {
+      const userLat = parseFloat(lat)
+      const userLng = parseFloat(lng)
+
+      processedDoctors = allDoctors.map(d => {
+        const dLat = d.hLat || d.lat;
+        const dLng = d.hLng || d.lng;
+
+        if (!dLat || !dLng) return { ...d, distance: 9999 }
+
+        const radLat = (dLat - userLat) * Math.PI / 180
+        const radLng = (dLng - userLng) * Math.PI / 180
+        const a = Math.sin(radLat/2) * Math.sin(radLat/2) + 
+                  Math.cos(userLat * Math.PI / 180) * Math.cos(dLat * Math.PI / 180) * 
+                  Math.sin(radLng/2) * Math.sin(radLng/2)
+        const distance = (6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1)
+        return { ...d, distance: parseFloat(distance), lat: dLat, lng: dLng }
+      })
+
+      processedDoctors.sort((a, b) => a.distance - b.distance)
+    }
+
+    const total = processedDoctors.length
+    const paginated = processedDoctors.slice(skip, skip + limitNum)
 
     res.json({
-      doctors,
+      doctors: paginated,
       total,
       page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
-      hasMore: skip + doctors.length < total,
+      pages: Math.ceil(total / limitNum),
+      hasMore: skip + paginated.length < total,
     })
 
   } catch (error) {

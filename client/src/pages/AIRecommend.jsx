@@ -1,479 +1,296 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { 
+  Bot, 
+  MessageSquare, 
+  FileText, 
+  Upload, 
+  User, 
+  MapPin, 
+  ChevronRight, 
+  Plus, 
+  X, 
+  Activity, 
+  Stethoscope, 
+  AlertCircle,
+  Shield,
+  Zap,
+  ArrowLeft,
+  CalendarCheck
+} from "lucide-react"
 
 export default function AIRecommend() {
   const navigate = useNavigate()
-
-  // Tab state — which input mode is active
-  const [activeTab, setActiveTab] = useState("symptoms") // "symptoms" or "report"
-
-  // ── SYMPTOMS TAB STATE ─────────────────────────────────────────────────────
-  const [symptoms, setSymptoms] = useState("")
-  const [age, setAge] = useState("")
-  const [gender, setGender] = useState("")
-  const [city, setCity] = useState("")
-
-  // ── REPORT TAB STATE ───────────────────────────────────────────────────────
-  const [file, setFile] = useState(null)
-  const [dragOver, setDragOver] = useState(false)
-  const [reportCity, setReportCity] = useState("")
-
-  // ── SHARED RESULT STATE ────────────────────────────────────────────────────
-  const [result, setResult] = useState(null)   // holds AI response
+  const [symptoms, setSymptoms] = useState([])
+  const [currentSymptom, setCurrentSymptom] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [recommendation, setRecommendation] = useState(null)
+  const [view, setView] = useState("input") // 'input' or 'results'
 
-  const cities = [
-    "Ranchi", "Jamshedpur", "Dhanbad", "Bokaro",
-    "Hazaribagh", "Deoghar", "Giridih", "Dumka"
-  ]
-
-  const commonSymptoms = [
-    "Chest pain", "Headache", "Fever", "Joint pain",
-    "Skin rash", "Breathing difficulty", "Stomach pain",
-    "Back pain", "Eye problem", "Ear pain"
-  ]
-
-  // ── SYMPTOM TAG CLICK ──────────────────────────────────────────────────────
-  const addSymptom = (symptom) => {
-    setSymptoms((prev) => prev ? `${prev}, ${symptom}` : symptom)
-  }
-
-  // ── FILE VALIDATION ────────────────────────────────────────────────────────
-  const validateAndSetFile = (selected) => {
-    setError("")
-    setResult(null)
-    const allowed = ["application/pdf", "image/jpeg", "image/png"]
-    if (!allowed.includes(selected?.type)) {
-      setError("Only PDF, JPG, or PNG files are allowed")
-      return
-    }
-    if (selected.size > 5 * 1024 * 1024) {
-      setError("File size must be under 5MB")
-      return
-    }
-    setFile(selected)
-  }
-
-  const handleFileChange = (e) => validateAndSetFile(e.target.files[0])
-
-  const handleDrop = (e) => {
+  const handleAddSymptom = (e) => {
     e.preventDefault()
-    setDragOver(false)
-    validateAndSetFile(e.dataTransfer.files[0])
+    if (currentSymptom.trim() && !symptoms.includes(currentSymptom.trim())) {
+      setSymptoms([...symptoms, currentSymptom.trim()])
+      setCurrentSymptom("")
+    }
   }
 
-  // ── RESET EVERYTHING ───────────────────────────────────────────────────────
-  const handleReset = () => {
-    setResult(null)
-    setError("")
-    setFile(null)
-    setSymptoms("")
-    setAge("")
-    setGender("")
-    setCity("")
-    setReportCity("")
+  const removeSymptom = (s) => {
+    setSymptoms(symptoms.filter((item) => item !== s))
   }
 
-  // ── SUBMIT SYMPTOMS ────────────────────────────────────────────────────────
-  const handleSymptomsSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setResult(null)
+  const getAIRecommendation = async () => {
+    if (symptoms.length === 0) return
     setLoading(true)
-
     try {
-      const token = localStorage.getItem("token")
-
-      const res = await axios.post(
-        "http://localhost:5000/api/report/recommend",
-        { symptoms, age, gender, city },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-
-      setResult(res.data)
-
+      const res = await axios.post("http://localhost:5000/api/ai/recommend", { symptoms })
+      setRecommendation(res.data)
+      setView("results")
     } catch (err) {
-      setError(err.response?.data?.message || "Could not get recommendations. Try again.")
+      console.error("AI Analysis failed", err)
     } finally {
       setLoading(false)
     }
   }
 
-  // ── SUBMIT REPORT ──────────────────────────────────────────────────────────
-  const handleReportSubmit = async () => {
-    if (!file) { setError("Please select a file first"); return }
-    if (!reportCity) { setError("Please select your city"); return }
-
-    setError("")
-    setResult(null)
-    setLoading(true)
-
-    try {
-      const token = localStorage.getItem("token")
-
-      // FormData because we are sending a binary file
-      const formData = new FormData()
-      formData.append("report", file)
-      formData.append("city", reportCity)
-
-      // Single endpoint handles both analysis AND recommendations
-      const res = await axios.post(
-        "http://localhost:5000/api/report/analyze-and-recommend",
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-
-      setResult(res.data)
-
-    } catch (err) {
-      setError(err.response?.data?.message || "Analysis failed. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ── RESULT SCREEN — shown after either tab submits ─────────────────────────
-  if (result) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-10 px-6">
-        <div className="max-w-2xl mx-auto">
-
-          {/* HEADER */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">
-              🤖 AI Analysis Complete
-            </h1>
-            <p className="text-gray-400 mt-2">
-              Based on your {activeTab === "report" ? "medical report" : "symptoms"}
-            </p>
-          </div>
-
-          {/* REPORT ANALYSIS SECTION — only shown when report was uploaded */}
-          {result.analysis && (
-            <div className="bg-white rounded-2xl shadow-md p-8 mb-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">
-                📄 Report Analysis
-              </h2>
-              <div className="text-gray-600 leading-relaxed space-y-3">
-                {result.analysis.split("\n").filter(Boolean).map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* RECOMMENDED SPECIALISTS */}
-          <div className="bg-white rounded-2xl shadow-md p-8 mb-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-2">
-              👨‍⚕️ Recommended Specialists
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Top doctors near you in Jharkhand
-            </p>
-
-            <div className="flex flex-col gap-4">
-              {(result.specialists || []).map((spec, i) => (
-                <div
-                  key={i}
-                  className="border border-gray-100 rounded-xl p-5 hover:border-teal-300 transition"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-
-                      {/* First result gets Most Recommended badge */}
-                      {i === 0 && (
-                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium mb-2 inline-block">
-                          ⭐ Most Recommended
-                        </span>
-                      )}
-
-                      <h3 className="font-semibold text-gray-800 text-lg">
-                        {spec.speciality}
-                      </h3>
-                      <p className="text-gray-500 text-sm mt-1">
-                        {spec.reason}
-                      </p>
-                      <p className="text-teal-600 text-sm mt-2 font-medium">
-                        📍 {spec.hospital}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => navigate("/appointment")}
-                      className="border border-teal-600 text-teal-600 px-4 py-2 rounded-lg text-sm hover:bg-teal-50 transition ml-4 shrink-0"
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* AI SUMMARY BOX */}
-          {result.summary && (
-            <div className="bg-blue-50 border border-blue-100 px-5 py-4 rounded-xl text-sm text-blue-800 leading-relaxed mb-6">
-              <p className="font-semibold mb-1">🧠 AI Summary</p>
-              <p>{result.summary}</p>
-            </div>
-          )}
-
-          {/* DISCLAIMER */}
-          <div className="bg-yellow-50 border border-yellow-200 px-4 py-3 rounded-xl text-sm text-yellow-700 mb-6">
-            ⚠️ AI-generated for informational purposes only. Always consult
-            a qualified doctor before any medical decision.
-          </div>
-
-          {/* TRY AGAIN */}
-          <button
-            onClick={handleReset}
-            className="text-teal-600 text-sm hover:underline"
-          >
-            ← Try again
-          </button>
-
-        </div>
-      </div>
-    )
-  }
-
-  // ── INPUT SCREEN ───────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <div className="max-w-2xl mx-auto">
-
-        {/* HEADER */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">
-            🤖 AI Health Assistant
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Upload your report or describe your symptoms —
-            get specialist recommendations across Jharkhand
-          </p>
-        </div>
-
-        {/* TABS */}
-        <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 p-1 mb-6">
-          <button
-            onClick={() => { setActiveTab("symptoms"); setError("") }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-              activeTab === "symptoms"
-                ? "bg-teal-600 text-white"
-                : "text-gray-500 hover:text-teal-600"
-            }`}
-          >
-            💬 Describe Symptoms
-          </button>
-          <button
-            onClick={() => { setActiveTab("report"); setError("") }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-              activeTab === "report"
-                ? "bg-teal-600 text-white"
-                : "text-gray-500 hover:text-teal-600"
-            }`}
-          >
-            📄 Upload Report
-          </button>
-        </div>
-
-        {/* ── SYMPTOMS TAB ── */}
-        {activeTab === "symptoms" && (
-          <div className="bg-white rounded-2xl shadow-md p-8">
-            <form onSubmit={handleSymptomsSubmit} className="flex flex-col gap-6">
-
-              {/* Symptoms textarea */}
-              <div>
-                <label className="text-gray-700 font-medium text-sm">
-                  Describe your symptoms
-                </label>
-                <textarea
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g. I have chest pain and shortness of breath for 3 days..."
-                  required
-                  rows={4}
-                  className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500 text-gray-700 resize-none"
-                />
-
-                {/* Quick symptom tags */}
-                <p className="text-gray-400 text-xs mt-2 mb-2">Quick add:</p>
-                <div className="flex flex-wrap gap-2">
-                  {commonSymptoms.map((s) => (
-                    <button
-                      type="button"
-                      key={s}
-                      onClick={() => addSymptom(s)}
-                      className="text-xs border border-teal-300 text-teal-600 px-3 py-1 rounded-full hover:bg-teal-50 transition"
-                    >
-                      + {s}
-                    </button>
-                  ))}
-                </div>
+    <div className="min-h-screen bg-white py-16 px-6 animate-in fade-in duration-700">
+      <div className="max-w-5xl mx-auto">
+        
+        {view === "input" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            
+            {/* LEFT: INPUT AREA */}
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[2px] mb-8 shadow-sm border border-teal-100">
+                <Bot size={14} className="animate-pulse" /> AI Medical Intelligence
               </div>
+              
+              <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-[1.1] mb-6">
+                Understand Your <span className="text-teal-600">Health</span> Better.
+              </h1>
+              
+              <p className="text-gray-400 font-medium text-lg mb-12">
+                Describe your symptoms in plain language. Our neural network will analyze patterns and suggest the most relevant specialists in Jharkhand.
+              </p>
 
-              {/* Age and Gender side by side */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-gray-700 font-medium text-sm">Age</label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="e.g. 35"
-                    min="1" max="120"
-                    required
-                    className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500"
+              <div className="space-y-10">
+                <form onSubmit={handleAddSymptom} className="relative group">
+                  <input 
+                    type="text"
+                    value={currentSymptom}
+                    onChange={(e) => setCurrentSymptom(e.target.value)}
+                    placeholder="E.g., Chronic headache, mild fever..."
+                    className="w-full bg-gray-50 border-2 border-transparent px-8 py-6 rounded-[32px] font-bold text-lg focus:outline-none focus:border-teal-600 focus:bg-white transition-all pl-16 shadow-xl shadow-gray-50"
                   />
-                </div>
-                <div>
-                  <label className="text-gray-700 font-medium text-sm">Gender</label>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    required
-                    className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500 text-gray-700"
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* City */}
-              <div>
-                <label className="text-gray-700 font-medium text-sm">
-                  Your City in Jharkhand
-                </label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500 text-gray-700"
-                >
-                  <option value="">Select city</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="bg-red-50 border border-red-300 text-red-600 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50"
-              >
-                {loading ? "🤖 Getting recommendations..." : "Get AI Recommendations"}
-              </button>
-
-            </form>
-          </div>
-        )}
-
-        {/* ── REPORT TAB ── */}
-        {activeTab === "report" && (
-          <div className="bg-white rounded-2xl shadow-md p-8">
-            <div className="flex flex-col gap-6">
-
-              {/* Drag and drop zone */}
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                onDragLeave={() => setDragOver(false)}
-                className={`border-2 border-dashed rounded-xl p-10 text-center transition ${
-                  dragOver
-                    ? "border-teal-500 bg-teal-50"
-                    : "border-gray-300 hover:border-teal-400"
-                }`}
-              >
-                <div className="text-5xl mb-3">📂</div>
-                <p className="text-gray-600 font-medium mb-1">
-                  Drag and drop your report here
-                </p>
-                <p className="text-gray-400 text-sm mb-4">
-                  Blood test, X-ray, prescription — PDF, JPG, PNG · Max 5MB
-                </p>
-                <input
-                  type="file"
-                  id="fileInput"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="fileInput"
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg cursor-pointer transition"
-                >
-                  Browse File
-                </label>
-              </div>
-
-              {/* Selected file display */}
-              {file && (
-                <div className="flex items-center justify-between bg-teal-50 border border-teal-200 px-4 py-3 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <span className="text-teal-600">📎</span>
-                    <span className="text-gray-700 text-sm font-medium">{file.name}</span>
-                    <span className="text-gray-400 text-xs">
-                      ({(file.size / 1024).toFixed(1)} KB)
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setFile(null)}
-                    className="text-red-400 hover:text-red-600 text-sm"
-                  >
-                    Remove
+                  <Plus className="absolute left-6 top-1/2 -translate-y-1/2 text-teal-600" size={24} />
+                  <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
+                    Add Tag
                   </button>
-                </div>
-              )}
+                </form>
 
-              {/* City for report tab */}
-              <div>
-                <label className="text-gray-700 font-medium text-sm">
-                  Your City in Jharkhand
-                </label>
-                <select
-                  value={reportCity}
-                  onChange={(e) => setReportCity(e.target.value)}
-                  className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500 text-gray-700"
-                >
-                  <option value="">Select city</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                <div className="flex flex-wrap gap-3">
+                  {symptoms.length === 0 && (
+                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest pl-2">No symptoms tagged yet</p>
+                  )}
+                  {symptoms.map((s) => (
+                    <div key={s} className="bg-white border-2 border-gray-100 px-5 py-3 rounded-2xl flex items-center gap-3 animate-in zoom-in-50 duration-300 group hover:border-red-200 transition-all">
+                      <span className="font-bold text-gray-700">{s}</span>
+                      <button onClick={() => removeSymptom(s)} className="text-gray-300 hover:text-red-500 transition-colors">
+                        <X size={16} />
+                      </button>
+                    </div>
                   ))}
-                </select>
+                </div>
+
+                <button 
+                  onClick={getAIRecommendation}
+                  disabled={symptoms.length === 0 || loading}
+                  className="w-full bg-teal-600 text-white py-6 rounded-[32px] font-black text-[13px] uppercase tracking-[3px] shadow-2xl shadow-teal-100 hover:bg-teal-700 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-4 group"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing Bio-data...
+                    </>
+                  ) : (
+                    <>
+                      Begin Neural Analysis <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* RIGHT: INFO/CARDS */}
+            <div className="lg:col-span-5 space-y-8">
+              <div className="bg-gray-900 rounded-[48px] p-10 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[40px] rounded-full"></div>
+                <h3 className="text-[10px] font-black text-teal-400 uppercase tracking-[2px] mb-8">How it works</h3>
+                <div className="space-y-8">
+                  {[
+                    { icon: MessageSquare, title: "Input Data", desc: "Share symptoms or reports" },
+                    { icon: Zap, title: "AI Analysis", desc: "Machine learning diagnosis" },
+                    { icon: CalendarCheck, title: "Get Help", desc: "Instant booking access" }
+                  ].map((step, i) => (
+                    <div key={i} className="flex gap-6">
+                      <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+                        <step.icon size={22} className="text-teal-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm mb-1">{step.title}</h4>
+                        <p className="text-xs text-white/40 font-medium leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Error */}
-              {error && (
-                <div className="bg-red-50 border border-red-300 text-red-600 px-4 py-3 rounded-lg text-sm">
-                  {error}
+              <div className="bg-teal-50 rounded-[40px] p-10 border border-teal-100">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-teal-600 shadow-sm mb-6">
+                  <FileText size={24} />
                 </div>
-              )}
+                <h3 className="font-black text-gray-900 mb-2">Medical Reports</h3>
+                <p className="text-xs text-gray-400 font-medium leading-relaxed mb-6">
+                  Have a blood report or MRI scan? Upload it for a deeper contextual analysis by our AI engine.
+                </p>
+                <button 
+                  onClick={() => navigate("/upload-report")}
+                  className="flex items-center gap-2 text-[10px] font-black text-teal-600 uppercase tracking-widest hover:underline"
+                >
+                  <Upload size={14} /> Upload Report <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
 
-              {/* Analyze button */}
-              <button
-                onClick={handleReportSubmit}
-                disabled={!file || loading}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50"
-              >
-                {loading ? "🤖 Analyzing report..." : "Analyze Report & Get Recommendations"}
-              </button>
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            {/* RESULTS VIEW */}
+            <button 
+              onClick={() => setView("input")}
+              className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-12 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft size={14} /> Back to Input
+            </button>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+              
+              <div className="lg:col-span-8 space-y-12">
+                <div>
+                  <h2 className="text-[10px] font-black text-teal-600 uppercase tracking-[3px] mb-4">Neural Diagnosis</h2>
+                  <h1 className="text-4xl font-black text-gray-900 leading-tight mb-8">
+                    {recommendation.possible_conditions?.join(' or ') || "Clinical Insight"}
+                  </h1>
+                  
+                  <div className="bg-gray-50 rounded-[40px] p-10 border border-gray-100 shadow-2xl shadow-gray-50">
+                    <p className="text-gray-600 font-medium text-lg leading-relaxed">
+                      {recommendation.recommendation}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                    <Stethoscope className="text-teal-600" /> Recommended Specialists
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {recommendation.suggested_specialists?.map((spec, i) => (
+                      <div key={i} className="bg-white border-2 border-gray-50 p-8 rounded-[32px] hover:border-teal-600 hover:shadow-2xl transition-all group">
+                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6 group-hover:bg-teal-600 group-hover:text-white transition-all">
+                          <User size={24} />
+                        </div>
+                        <h4 className="font-black text-lg text-gray-900 mb-1">{spec}</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Expertise Verified</p>
+                        <button 
+                          onClick={() => navigate("/appointment")}
+                          className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-100"
+                        >
+                          Find Doctors
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 space-y-8">
+                <div className="bg-white border-2 border-gray-50 rounded-[40px] p-10 sticky top-32">
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-8">Summary Tags</h3>
+                  <div className="flex flex-wrap gap-2 mb-10">
+                    {symptoms.map(s => (
+                      <span key={s} className="bg-gray-50 px-4 py-2 rounded-xl text-[10px] font-black text-gray-900 uppercase tracking-tight">{s}</span>
+                    ))}
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+                        <MapPin size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase">Coverage</p>
+                        <p className="text-xs font-black text-gray-900">All Jharkhand Centers</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <Activity size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase">Analysis Confidence</p>
+                        <p className="text-xs font-black text-gray-900">High Resolution</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-12 pt-8 border-t border-gray-50">
+                    <div className="flex items-center gap-3 text-orange-500 mb-4">
+                      <AlertCircle size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Medical Disclaimer</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase">
+                      This analysis is AI-generated and should not replace clinical professional advice.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
             </div>
           </div>
         )}
+
+        {/* BOTTOM PROTOCOLS */}
+        <div className="mt-20 pt-20 border-t border-gray-50">
+          <div className="bg-gray-50 rounded-[48px] p-12 md:p-16 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 blur-[80px] rounded-full"></div>
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+              <div className="md:col-span-8">
+                <h2 className="text-xl font-black text-gray-900 flex items-center gap-3 mb-4">
+                  <Activity className="text-teal-600" /> System Protocols
+                </h2>
+                <p className="text-gray-400 font-medium leading-relaxed max-w-xl">
+                  Our Health AI utilizes localized medical data from Ranchi, Jamshedpur, and Dhanbad to provide the most relevant specialist recommendations based on local availability.
+                </p>
+              </div>
+              <div className="md:col-span-4">
+                <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-xl shadow-gray-50">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white">
+                      <Shield size={24} />
+                    </div>
+                    <h3 className="font-black text-sm">Privacy Level 4</h3>
+                  </div>
+                  <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden mb-4">
+                    <div className="h-full bg-teal-600 w-[95%]"></div>
+                  </div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Encrypted Transmission Active</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

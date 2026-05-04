@@ -2,6 +2,24 @@ import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import axios from "axios"
 
+// ── helpers ────────────────────────────────────────────────────────────────
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validateLogin(email, password) {
+  const errs = {}
+  if (!email.trim()) {
+    errs.email = "Email is required"
+  } else if (!emailRegex.test(email.trim())) {
+    errs.email = "Enter a valid email address"
+  }
+  if (!password) {
+    errs.password = "Password is required"
+  } else if (password.length < 6) {
+    errs.password = "Password must be at least 6 characters"
+  }
+  return errs
+}
+
 export default function Login() {
   const navigate = useNavigate()
 
@@ -10,12 +28,25 @@ export default function Login() {
   const [password, setPassword] = useState("")
 
   // For showing errors and loading state
-  const [error, setError] = useState("")
+  const [errors, setErrors]   = useState({})   // field-level errors
+  const [error, setError]     = useState("")    // server error
   const [loading, setLoading] = useState(false)
 
+  // Clear a single field error as the user starts correcting it
+  const clearErr = (field) =>
+    setErrors((prev) => ({ ...prev, [field]: "" }))
+
   const handleLogin = async (e) => {
-    e.preventDefault()   // stops page from refreshing on form submit
+    e.preventDefault()
     setError("")
+
+    // ── client-side validation ────────────────────────────────────────────
+    const errs = validateLogin(email, password)
+    if (Object.keys(errs).length) {
+      setErrors(errs)
+      return
+    }
+    setErrors({})
     setLoading(true)
 
     try {
@@ -52,7 +83,7 @@ export default function Login() {
           <p className="text-gray-500 mt-1">Login to your account</p>
         </div>
 
-        {/* ERROR MESSAGE */}
+        {/* SERVER ERROR MESSAGE */}
         {error && (
           <div className="bg-red-50 border border-red-300 text-red-600 px-4 py-3 rounded-lg mb-5 text-sm">
             {error}
@@ -60,30 +91,44 @@ export default function Login() {
         )}
 
         {/* FORM */}
-        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+        <form onSubmit={handleLogin} className="flex flex-col gap-5" noValidate>
 
+          {/* Email */}
           <div>
             <label className="text-gray-700 font-medium text-sm">Email</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); clearErr("email") }}
               placeholder="you@example.com"
-              required
-              className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500"
+              className={`w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none ${
+                errors.email
+                  ? "border-red-400 focus:border-red-400"
+                  : "focus:border-teal-500"
+              }`}
             />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
           </div>
 
+          {/* Password */}
           <div>
             <label className="text-gray-700 font-medium text-sm">Password</label>
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); clearErr("password") }}
               placeholder="Enter your password"
-              required
-              className="w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none focus:border-teal-500"
+              className={`w-full border px-4 py-2 rounded-lg mt-1 focus:outline-none ${
+                errors.password
+                  ? "border-red-400 focus:border-red-400"
+                  : "focus:border-teal-500"
+              }`}
             />
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
           </div>
 
           <button

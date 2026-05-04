@@ -1,71 +1,167 @@
-import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { Link, useNavigate, useLocation } from "react-router-dom"
+import { 
+  Menu, 
+  X, 
+  MapPin, 
+  Calendar, 
+  Video, 
+  Zap, 
+  Smartphone, 
+  Bell, 
+  LogOut, 
+  User, 
+  LayoutDashboard,
+  ChevronDown,
+  Sparkles
+} from "lucide-react"
 
 function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const token = localStorage.getItem("token")
-  const user = JSON.parse(localStorage.getItem("user") || "{}")
+  const user  = JSON.parse(localStorage.getItem("user") || "{}")
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    navigate("/login")
+    localStorage.removeItem("token"); localStorage.removeItem("user")
+    navigate("/login"); setMenuOpen(false)
   }
 
+  const navLinks = [
+    { to: "/nearby",       label: "Nearby", icon: MapPin },
+    { to: "/appointment",  label: "Book",   icon: Calendar },
+    { to: "/video-consult",label: "Consult",icon: Video },
+    { to: "/ai-recommend", label: "AI Labs", icon: Sparkles },
+    { to: "/medicines",    label: "Pharmacy",icon: Smartphone },
+    { to: "/ambulance",    label: "SOS",     icon: Bell, className: "text-red-600" },
+  ]
+
+  const isActive = (path) => location.pathname === path
+
   return (
-    <div className="flex justify-between items-center px-10 py-4 bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-[100]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
+        <div className="flex justify-between items-center h-20">
 
-      {/* LOGO */}
-      <Link to="/" className="flex items-center gap-3">
-  <img
-    src="/logo.jpeg"
-    alt="Svasthya Connect"
-    className="h-12 w-12 rounded-full object-contain"
-  />
-  <div>
-    <h1 className="text-xl font-bold text-teal-600">Svasthya Connect</h1>
-    <p className="text-xs text-gray-400">Seamless Health, Continuous Care</p>
-  </div>
-</Link>
-
-      {/* NAV LINKS */}
-      <div className="flex gap-5 text-gray-700 font-medium text-sm">
-        <Link to="/" className="hover:text-teal-600">Home</Link>
-        <Link to="/nearby" className="hover:text-teal-600">📍 Nearby</Link>
-        <Link to="/appointment" className="hover:text-teal-600">Book</Link>
-        <Link to="/video-consult" className="hover:text-teal-600">Consult</Link>
-        <Link to="/ai-recommend" className="hover:text-teal-600">AI & Reports</Link>
-        <Link to="/medicines" className="hover:text-teal-600">Medicines</Link>
-        <Link to="/ambulance" className="hover:text-teal-600 text-red-500 font-bold">🚑 Emergency</Link>
-      </div>
-
-      {/* RIGHT SIDE */}
-      {token ? (
-        <div className="flex gap-3 items-center">
-          {/* Profile avatar — shows initials */}
-          <Link to="/profile">
-            <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm hover:ring-2 hover:ring-teal-400 transition">
-              {user.name?.charAt(0).toUpperCase() || "P"}
+          {/* LOGO */}
+          <Link to="/" className="flex items-center gap-3 group" onClick={() => setMenuOpen(false)}>
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-teal-100 group-hover:scale-105 transition-all">
+              <img src="/logo.jpeg" alt="Svasthya Connect" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h1 className="text-lg font-black text-gray-900 leading-none tracking-tight">Svasthya<span className="text-teal-600">Connect</span></h1>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 hidden sm:block">Digital Health Network</p>
             </div>
           </Link>
-          <Link to="/dashboard" className="text-teal-600 font-medium hover:underline text-sm">
-            Dashboard
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="border border-red-400 text-red-400 px-3 py-1 rounded-lg hover:bg-red-50 text-sm transition"
-          >
-            Logout
-          </button>
-        </div>
-      ) : (
-        <Link to="/login">
-          <button className="border border-teal-600 text-teal-600 px-4 py-1 rounded-lg hover:bg-teal-50 text-sm">
-            Login / Signup
-          </button>
-        </Link>
-      )}
 
-    </div>
+          {/* DESKTOP NAV */}
+          <div className="hidden lg:flex items-center gap-8">
+            {navLinks.map((l) => (
+              <Link 
+                key={l.to} 
+                to={l.to} 
+                className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all hover:text-teal-600 ${
+                  isActive(l.to) ? "text-teal-600" : "text-gray-400"
+                } ${l.className || ""}`}
+              >
+                <l.icon size={14} className={isActive(l.to) ? "animate-pulse" : ""} />
+                {l.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* DESKTOP ACTIONS */}
+          <div className="hidden lg:flex items-center gap-6">
+            {token ? (
+              <div className="flex items-center gap-4 pl-6 border-l border-gray-100">
+                <Link to="/dashboard" className="flex items-center gap-2 group">
+                  <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all border border-gray-100">
+                    <LayoutDashboard size={18} />
+                  </div>
+                  <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Dashboard</span>
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-100"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button className="bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200">
+                  Join Network
+                </button>
+              </Link>
+            )}
+          </div>
+
+          {/* MOBILE TOGGLE */}
+          <div className="flex lg:hidden items-center gap-4">
+            {token && (
+              <Link to="/dashboard" className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                <User size={18} />
+              </Link>
+            )}
+            <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-900">
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* MOBILE MENU */}
+      {menuOpen && (
+        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 space-y-6 animate-in slide-in-from-top-4 duration-300 shadow-2xl">
+          <div className="grid grid-cols-2 gap-4">
+            {navLinks.map((l) => (
+              <Link 
+                key={l.to} 
+                to={l.to} 
+                onClick={() => setMenuOpen(false)}
+                className={`flex flex-col items-center gap-3 p-6 rounded-3xl border border-gray-50 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  isActive(l.to) ? "bg-teal-50 text-teal-600 border-teal-100" : "bg-gray-50 text-gray-400"
+                } ${l.className || ""}`}
+              >
+                <l.icon size={20} />
+                {l.label}
+              </Link>
+            ))}
+          </div>
+          
+          <div className="pt-6 border-t border-gray-100">
+            {token ? (
+              <div className="flex flex-col gap-3">
+                <Link 
+                  to="/dashboard" 
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-3 bg-gray-900 text-white py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest"
+                >
+                  <LayoutDashboard size={18} /> My Dashboard
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-3 bg-red-50 text-red-600 py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest"
+                >
+                  <LogOut size={18} /> Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link 
+                to="/login" 
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center bg-teal-600 text-white py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest"
+              >
+                Login / Signup
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
   )
 }
 

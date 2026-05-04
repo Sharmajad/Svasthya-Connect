@@ -12,6 +12,10 @@ import Profile from "./pages/Profile"
 import NearbyServices from "./pages/NearbyServices"
 import Medicines from "./pages/Medicines"
 import Ambulance from "./pages/Ambulance"
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy"
+import TermsOfService from "./pages/legal/TermsOfService"
+import Disclaimer from "./pages/legal/Disclaimer"
+import VoiceAssistant from "./components/VoiceAssistant"
 
 function App() {
   return (
@@ -29,8 +33,11 @@ function App() {
         <Route path="/nearby" element={<NearbyServices />} />
         <Route path="/medicines" element={<Medicines />} />
         <Route path="/ambulance" element={<Ambulance />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
       </Routes>
-    
+      <VoiceAssistant />
     </Router>
   )
 }

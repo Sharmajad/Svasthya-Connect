@@ -15,6 +15,7 @@ const doctorSchema = new mongoose.Schema(
     phone:       { type: String, default: "9876543210" },
     about:       { type: String, default: "" },
     languages:   [{ type: String }],
+    image:       { type: String, default: "" },
     slots: {
       type: [String],
       default: ["09:00 AM","10:00 AM","11:00 AM","12:00 PM","02:00 PM","03:00 PM","04:00 PM"],

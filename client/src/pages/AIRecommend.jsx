@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { 
@@ -9,205 +9,339 @@ import {
   User, 
   MapPin, 
   ChevronRight, 
-  Plus, 
-  X, 
   Activity, 
   Stethoscope, 
   AlertCircle,
   Shield,
-  Zap,
   ArrowLeft,
-  CalendarCheck
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  Plus,
+  HeartPulse,
+  BookOpen,
+  CheckCircle,
+  AlertOctagon
 } from "lucide-react"
+
+const COMMON_SYMPTOMS = [
+  "Headache", "Fever", "Cough", "Cold", "Body Pain", 
+  "Chest Pain", "Stomach Ache", "Skin Rash", "Dizziness",
+  "Fatigue", "Shortness of Breath", "Sore Throat"
+]
 
 export default function AIRecommend() {
   const navigate = useNavigate()
-  const [symptoms, setSymptoms] = useState([])
-  const [currentSymptom, setCurrentSymptom] = useState("")
+  const token = localStorage.getItem("token")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [recommendation, setRecommendation] = useState(null)
   const [view, setView] = useState("input") // 'input' or 'results'
+  const [activeTab, setActiveTab] = useState("symptoms") // 'symptoms' or 'report'
+  const [symptomText, setSymptomText] = useState("")
+  const [reportFile, setReportFile] = useState(null)
+  const [userLocation, setUserLocation] = useState({ lat: 23.3441, lng: 85.3096 }) // Default Ranchi
 
-  const handleAddSymptom = (e) => {
-    e.preventDefault()
-    if (currentSymptom.trim() && !symptoms.includes(currentSymptom.trim())) {
-      setSymptoms([...symptoms, currentSymptom.trim()])
-      setCurrentSymptom("")
+  useEffect(() => {
+    if (!token) {
+      navigate("/login", { state: { from: "/ai-recommend" } })
     }
-  }
 
-  const removeSymptom = (s) => {
-    setSymptoms(symptoms.filter((item) => item !== s))
-  }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        },
+        (err) => console.log("Location access denied, using default.")
+      )
+    }
+  }, [token, navigate])
 
-  const getAIRecommendation = async () => {
-    if (symptoms.length === 0) return
+  const handleAnalyzeSymptoms = async () => {
+    if (!symptomText.trim()) return
     setLoading(true)
+    setError(null)
     try {
-      const res = await axios.post("http://localhost:5000/api/ai/recommend", { symptoms })
+      const res = await axios.post("http://localhost:5000/api/aiRecomend/analyze-symptoms", { 
+        symptoms: symptomText,
+        lat: userLocation.lat,
+        lng: userLocation.lng
+      }, {
+        headers: { Authorization: "Bearer " + token }
+      })
       setRecommendation(res.data)
       setView("results")
     } catch (err) {
       console.error("AI Analysis failed", err)
+      setError("AI analysis failed. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
+  const handleAnalyzeReport = async () => {
+    if (!reportFile) return
+    setLoading(true)
+    setError(null)
+    try {
+      const formData = new FormData()
+      formData.append("lat", userLocation.lat)
+      formData.append("lng", userLocation.lng)
+      formData.append("report", reportFile)
+      
+      const res = await axios.post("http://localhost:5000/api/aiRecomend/analyze-report", formData, {
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          Authorization: "Bearer " + token
+        }
+      })
+      setRecommendation(res.data)
+      setView("results")
+    } catch (err) {
+      console.error("Report Analysis failed", err)
+      setError("Report analysis failed. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addSymptomTag = (tag) => {
+    if (symptomText.includes(tag)) return
+    const newText = symptomText ? `${symptomText}, ${tag}` : tag
+    setSymptomText(newText)
+  }
+
+  const getSeverityColor = (severity) => {
+    const s = severity?.toLowerCase() || ""
+    if (s === "low") return "bg-green-100 text-green-700 border-green-200"
+    if (s === "medium") return "bg-orange-100 text-orange-700 border-orange-200"
+    if (s === "high") return "bg-red-100 text-red-700 border-red-200"
+    return "bg-gray-100 text-gray-700 border-gray-200"
+  }
+
   return (
-    <div className="min-h-screen bg-white py-16 px-6 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         
         {view === "input" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            
-            {/* LEFT: INPUT AREA */}
-            <div className="lg:col-span-7">
-              <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[2px] mb-8 shadow-sm border border-teal-100">
-                <Bot size={14} className="animate-pulse" /> AI Medical Intelligence
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">
+                <Bot size={16} className="animate-pulse" /> AI Medical Assistant
               </div>
-              
-              <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-[1.1] mb-6">
-                Understand Your <span className="text-teal-600">Health</span> Better.
+              <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+                AI Health Recommendation
               </h1>
-              
-              <p className="text-gray-400 font-medium text-lg mb-12">
-                Describe your symptoms in plain language. Our neural network will analyze patterns and suggest the most relevant specialists in Jharkhand.
+              <p className="text-gray-500 max-w-lg mx-auto font-medium">
+                Get instant insights about your health symptoms or medical reports using advanced AI analysis.
               </p>
+            </div>
 
-              <div className="space-y-10">
-                <form onSubmit={handleAddSymptom} className="relative group">
-                  <input 
-                    type="text"
-                    value={currentSymptom}
-                    onChange={(e) => setCurrentSymptom(e.target.value)}
-                    placeholder="E.g., Chronic headache, mild fever..."
-                    className="w-full bg-gray-50 border-2 border-transparent px-8 py-6 rounded-[32px] font-bold text-lg focus:outline-none focus:border-teal-600 focus:bg-white transition-all pl-16 shadow-xl shadow-gray-50"
-                  />
-                  <Plus className="absolute left-6 top-1/2 -translate-y-1/2 text-teal-600" size={24} />
-                  <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
-                    Add Tag
+            {/* TABS */}
+            <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex gap-2">
+              <button 
+                onClick={() => setActiveTab("symptoms")}
+                className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeTab === "symptoms" ? "bg-gray-900 text-white shadow-lg" : "text-gray-500 hover:bg-gray-50"}`}
+              >
+                <MessageSquare size={18} /> Enter Symptoms
+              </button>
+              <button 
+                onClick={() => setActiveTab("report")}
+                className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeTab === "report" ? "bg-gray-900 text-white shadow-lg" : "text-gray-500 hover:bg-gray-50"}`}
+              >
+                <FileText size={18} /> Upload Report
+              </button>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
+              {activeTab === "symptoms" ? (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Common Symptoms</label>
+                    <div className="flex flex-wrap gap-2">
+                      {COMMON_SYMPTOMS.map(s => (
+                        <button 
+                          key={s}
+                          onClick={() => addSymptomTag(s)}
+                          className="px-4 py-2 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-full text-xs font-bold text-gray-500 transition-all border border-gray-100 flex items-center gap-1 group"
+                        >
+                          <Plus size={12} className="group-hover:rotate-90 transition-transform" /> {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Describe your symptoms</label>
+                    <textarea 
+                      value={symptomText}
+                      onChange={(e) => setSymptomText(e.target.value)}
+                      placeholder="e.g. I have been having a persistent headache for 3 days and some dizziness..."
+                      className="w-full min-h-[160px] bg-gray-50 border-2 border-gray-100 rounded-2xl p-6 text-gray-700 font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleAnalyzeSymptoms}
+                    disabled={loading || !symptomText.trim()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="animate-spin" /> : <Activity size={20} />}
+                    {loading ? "Analyzing Symptoms..." : "Analyze Symptoms"}
                   </button>
-                </form>
-
-                <div className="flex flex-wrap gap-3">
-                  {symptoms.length === 0 && (
-                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest pl-2">No symptoms tagged yet</p>
-                  )}
-                  {symptoms.map((s) => (
-                    <div key={s} className="bg-white border-2 border-gray-100 px-5 py-3 rounded-2xl flex items-center gap-3 animate-in zoom-in-50 duration-300 group hover:border-red-200 transition-all">
-                      <span className="font-bold text-gray-700">{s}</span>
-                      <button onClick={() => removeSymptom(s)} className="text-gray-300 hover:text-red-500 transition-colors">
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Upload Medical Report (PDF/Image)</label>
+                    <div className="relative group">
+                      <input 
+                        type="file" 
+                        onChange={(e) => setReportFile(e.target.files[0])}
+                        accept=".pdf,.jpg,.jpeg,.png,.txt"
+                        className="hidden" 
+                        id="report-input"
+                      />
+                      <label 
+                        htmlFor="report-input"
+                        className="w-full border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all"
+                      >
+                        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                          <Upload size={32} />
+                        </div>
+                        <div className="text-center">
+                          <p className="font-bold text-gray-700">{reportFile ? reportFile.name : "Click to select or drag and drop"}</p>
+                          <p className="text-xs text-gray-400 font-medium mt-1">Supports PDF, JPG, PNG, TXT (Max 5MB)</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleAnalyzeReport}
+                    disabled={loading || !reportFile}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="animate-spin" /> : <Activity size={20} />}
+                    {loading ? "Processing Report..." : "Analyze Report"}
+                  </button>
+                </div>
+              )}
 
-                <button 
-                  onClick={getAIRecommendation}
-                  disabled={symptoms.length === 0 || loading}
-                  className="w-full bg-teal-600 text-white py-6 rounded-[32px] font-black text-[13px] uppercase tracking-[3px] shadow-2xl shadow-teal-100 hover:bg-teal-700 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-4 group"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing Bio-data...
-                    </>
-                  ) : (
-                    <>
-                      Begin Neural Analysis <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
+              {error && (
+                <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm font-bold">
+                  <AlertCircle size={18} /> {error}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-8 pt-4">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Shield size={16} /> <span className="text-[10px] font-black uppercase tracking-widest">Secure & Private</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-400">
+                <MapPin size={16} /> <span className="text-[10px] font-black uppercase tracking-widest">Localized Results</span>
               </div>
             </div>
 
-            {/* RIGHT: INFO/CARDS */}
-            <div className="lg:col-span-5 space-y-8">
-              <div className="bg-gray-900 rounded-[48px] p-10 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[40px] rounded-full"></div>
-                <h3 className="text-[10px] font-black text-teal-400 uppercase tracking-[2px] mb-8">How it works</h3>
-                <div className="space-y-8">
-                  {[
-                    { icon: MessageSquare, title: "Input Data", desc: "Share symptoms or reports" },
-                    { icon: Zap, title: "AI Analysis", desc: "Machine learning diagnosis" },
-                    { icon: CalendarCheck, title: "Get Help", desc: "Instant booking access" }
-                  ].map((step, i) => (
-                    <div key={i} className="flex gap-6">
-                      <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-                        <step.icon size={22} className="text-teal-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-black text-sm mb-1">{step.title}</h4>
-                        <p className="text-xs text-white/40 font-medium leading-relaxed">{step.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-teal-50 rounded-[40px] p-10 border border-teal-100">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-teal-600 shadow-sm mb-6">
-                  <FileText size={24} />
-                </div>
-                <h3 className="font-black text-gray-900 mb-2">Medical Reports</h3>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed mb-6">
-                  Have a blood report or MRI scan? Upload it for a deeper contextual analysis by our AI engine.
-                </p>
-                <button 
-                  onClick={() => navigate("/upload-report")}
-                  className="flex items-center gap-2 text-[10px] font-black text-teal-600 uppercase tracking-widest hover:underline"
-                >
-                  <Upload size={14} /> Upload Report <ChevronRight size={14} />
-                </button>
-              </div>
+            <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl flex gap-4">
+              <AlertTriangle className="text-orange-500 shrink-0" size={24} />
+              <p className="text-xs text-orange-700 font-medium leading-relaxed">
+                <span className="font-black uppercase block mb-1">⚠️ AI-generated. Not a medical diagnosis.</span>
+                Consult a real doctor for any medical concerns.
+              </p>
             </div>
-
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="space-y-8 animate-in slide-in-from-bottom-8 fade-in duration-700">
             {/* RESULTS VIEW */}
             <button 
               onClick={() => setView("input")}
-              className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-12 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
             >
-              <ArrowLeft size={14} /> Back to Input
+              <ArrowLeft size={14} /> Back to Analysis
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-              
-              <div className="lg:col-span-8 space-y-12">
-                <div>
-                  <h2 className="text-[10px] font-black text-teal-600 uppercase tracking-[3px] mb-4">Neural Diagnosis</h2>
-                  <h1 className="text-4xl font-black text-gray-900 leading-tight mb-8">
-                    {recommendation.possible_conditions?.join(' or ') || "Clinical Insight"}
-                  </h1>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-8 space-y-8">
+                {/* SUMMARY CARD */}
+                <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/30 overflow-hidden">
+                  <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                      <h2 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">AI Health Insights</h2>
+                      <h3 className="text-2xl font-black text-gray-900">Health Overview</h3>
+                    </div>
+                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${getSeverityColor(recommendation?.severity)}`}>
+                      <AlertOctagon size={14} /> Severity: {recommendation?.severity || "Unknown"}
+                    </div>
+                  </div>
                   
-                  <div className="bg-gray-50 rounded-[40px] p-10 border border-gray-100 shadow-2xl shadow-gray-50">
-                    <p className="text-gray-600 font-medium text-lg leading-relaxed">
-                      {recommendation.recommendation}
-                    </p>
+                  <div className="p-8 space-y-10">
+                    {/* PROBLEM */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <HeartPulse size={16} className="text-red-500" /> 🩺 The Problem
+                      </div>
+                      <p className="text-xl font-bold text-gray-900 leading-relaxed">
+                        {recommendation?.problem}
+                      </p>
+                    </div>
+
+                    {/* WHAT IT MEANS */}
+                    <div className="space-y-3 p-6 bg-blue-50/30 rounded-2xl border border-blue-50">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <BookOpen size={16} className="text-blue-500" /> 📖 What it means
+                      </div>
+                      <p className="text-gray-600 font-medium leading-relaxed">
+                        {recommendation?.whatItMeans}
+                      </p>
+                    </div>
+
+                    {/* WHAT TO DO */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <CheckCircle size={16} className="text-green-500" /> ✅ What to do
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {recommendation?.whatToDo?.map((step, idx) => (
+                          <div key={idx} className="bg-white border border-gray-100 px-4 py-3 rounded-xl text-sm font-bold text-gray-700 flex items-center gap-3 shadow-sm">
+                            <div className="w-5 h-5 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-[10px] shrink-0">
+                              {idx + 1}
+                            </div>
+                            {step}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
+                {/* DOCTOR RECOMMENDATIONS */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
-                    <Stethoscope className="text-teal-600" /> Recommended Specialists
+                  <h3 className="text-xl font-black text-gray-900 flex items-center gap-3 px-2">
+                    <Stethoscope className="text-blue-600" /> Recommended {recommendation?.doctorType}s
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {recommendation.suggested_specialists?.map((spec, i) => (
-                      <div key={i} className="bg-white border-2 border-gray-50 p-8 rounded-[32px] hover:border-teal-600 hover:shadow-2xl transition-all group">
-                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-teal-600 mb-6 group-hover:bg-teal-600 group-hover:text-white transition-all">
-                          <User size={24} />
+                    {recommendation?.doctors?.map((doc, i) => (
+                      <div key={i} className="bg-white border border-gray-100 p-6 rounded-[24px] hover:border-blue-500 hover:shadow-xl transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 -mr-8 -mt-8 rounded-full"></div>
+                        <div className="flex gap-4 items-start mb-4">
+                          <div className="w-14 h-14 bg-gray-100 rounded-2xl overflow-hidden shrink-0">
+                            {doc.image ? <img src={doc.image} alt={doc.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><User size={24} /></div>}
+                          </div>
+                          <div>
+                            <h4 className="font-black text-gray-900">{doc.name}</h4>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{doc.speciality}</p>
+                            <p className="text-xs font-bold text-blue-600 mt-1 flex items-center gap-1">
+                              <MapPin size={12} /> {doc.distance} km away
+                            </p>
+                          </div>
                         </div>
-                        <h4 className="font-black text-lg text-gray-900 mb-1">{spec}</h4>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Expertise Verified</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">{doc.hospital}</p>
                         <button 
-                          onClick={() => navigate("/appointment")}
-                          className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-100"
+                          onClick={() => navigate("/appointment", { state: { doctor: doc } })}
+                          className="w-full py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all"
                         >
-                          Find Doctors
+                          Book Appointment
                         </button>
                       </div>
                     ))}
@@ -215,82 +349,41 @@ export default function AIRecommend() {
                 </div>
               </div>
 
-              <div className="lg:col-span-4 space-y-8">
-                <div className="bg-white border-2 border-gray-50 rounded-[40px] p-10 sticky top-32">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-8">Summary Tags</h3>
-                  <div className="flex flex-wrap gap-2 mb-10">
-                    {symptoms.map(s => (
-                      <span key={s} className="bg-gray-50 px-4 py-2 rounded-xl text-[10px] font-black text-gray-900 uppercase tracking-tight">{s}</span>
+              {/* SIDEBAR */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="bg-blue-600 rounded-[32px] p-8 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full"></div>
+                  <h4 className="text-xs font-black uppercase tracking-widest mb-6 opacity-70">Next Steps</h4>
+                  <ul className="space-y-4">
+                    {[
+                      "Monitor symptoms daily",
+                      "Keep reports organized",
+                      "Book professional visit",
+                      "Follow AI advice"
+                    ].map((step, i) => (
+                      <li key={i} className="flex gap-3 items-center font-bold text-sm">
+                        <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                          <ChevronRight size={14} />
+                        </div>
+                        {step}
+                      </li>
                     ))}
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
-                        <MapPin size={18} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase">Coverage</p>
-                        <p className="text-xs font-black text-gray-900">All Jharkhand Centers</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                        <Activity size={18} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase">Analysis Confidence</p>
-                        <p className="text-xs font-black text-gray-900">High Resolution</p>
-                      </div>
-                    </div>
-                  </div>
+                  </ul>
+                </div>
 
-                  <div className="mt-12 pt-8 border-t border-gray-50">
-                    <div className="flex items-center gap-3 text-orange-500 mb-4">
-                      <AlertCircle size={18} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Medical Disclaimer</span>
-                    </div>
-                    <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase">
-                      This analysis is AI-generated and should not replace clinical professional advice.
-                    </p>
-                  </div>
+                <div className="bg-white border border-gray-100 rounded-[32px] p-8 space-y-6 sticky top-32">
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Medical Disclaimer</h4>
+                  <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                    ⚠️ This analysis is AI-generated and for informational purposes only. It is NOT a medical diagnosis. Please consult a qualified doctor before making any medical decisions.
+                  </p>
+                  <button onClick={() => navigate("/appointment")} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
+                    <Stethoscope size={16} /> Book Real Doctor
+                  </button>
                 </div>
               </div>
-
             </div>
           </div>
         )}
-
-        {/* BOTTOM PROTOCOLS */}
-        <div className="mt-20 pt-20 border-t border-gray-50">
-          <div className="bg-gray-50 rounded-[48px] p-12 md:p-16 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 blur-[80px] rounded-full"></div>
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-              <div className="md:col-span-8">
-                <h2 className="text-xl font-black text-gray-900 flex items-center gap-3 mb-4">
-                  <Activity className="text-teal-600" /> System Protocols
-                </h2>
-                <p className="text-gray-400 font-medium leading-relaxed max-w-xl">
-                  Our Health AI utilizes localized medical data from Ranchi, Jamshedpur, and Dhanbad to provide the most relevant specialist recommendations based on local availability.
-                </p>
-              </div>
-              <div className="md:col-span-4">
-                <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-xl shadow-gray-50">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white">
-                      <Shield size={24} />
-                    </div>
-                    <h3 className="font-black text-sm">Privacy Level 4</h3>
-                  </div>
-                  <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden mb-4">
-                    <div className="h-full bg-teal-600 w-[95%]"></div>
-                  </div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Encrypted Transmission Active</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>

@@ -8,6 +8,8 @@ import {
   getMyReports,
   getMyPrescriptions,
   upload,
+  analyzeSymptoms,
+  analyzeReportNew
 } from "../controllers/reportController.js"
 import protect from "../middleware/authMiddleware.js"
 
@@ -20,5 +22,9 @@ router.post("/upload",                protect, upload.single("report"),       up
 router.post("/upload-prescription",   protect, upload.single("prescription"), uploadPrescription)
 router.get("/my-reports",             protect,                                getMyReports)
 router.get("/my-prescriptions",       protect,                                getMyPrescriptions)
+
+// New aiRecomend module endpoints
+router.post("/analyze-symptoms", protect, analyzeSymptoms)
+router.post("/analyze-report", protect, upload.single("report"), analyzeReportNew)
 
 export default router

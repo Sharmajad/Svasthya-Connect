@@ -1,44 +1,24 @@
-import multer from "multer"
 import fs from "fs"
 import Report from "../models/Report.js"
+import Doctor from "../models/Doctor.js"
+import { model } from "../config/gemini.js"
+import { PDFParse } from "pdf-parse"
+import Tesseract from "tesseract.js"
+import Groq from "groq-sdk"
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "uploads/"
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir)
-    cb(null, uploadDir)
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname)
-  },
-})
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-export const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ["application/pdf", "image/jpeg", "image/png"]
-    if (allowed.includes(file.mimetype)) cb(null, true)
-    else cb(new Error("Only PDF, JPG, PNG allowed"))
-  },
-})
-
-const JHARKHAND_HOSPITALS = {
-  Ranchi:     ["RIMS", "Medanta Hospital Ranchi", "AIIMS Ranchi", "CIP Kanke", "Orchid Medical Centre"],
-  Jamshedpur: ["Tata Main Hospital (TMH)", "MGM Medical College Hospital", "Brahmanand Narayana Hospital"],
-  Dhanbad:    ["SNMMCH Saraidhela", "PMCH Dhanbad", "Apollo Clinic Dhanbad"],
-  Bokaro:     ["Bokaro General Hospital", "SAIL Bokaro Steel Hospital"],
-  Hazaribagh: ["Sadar Hospital Hazaribagh", "Hazaribagh Medical College"],
-  Deoghar:    ["AIIMS Deoghar", "Sadar Hospital Deoghar"],
-}
-
+// Existing functions...
 export const analyzeReport = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
-    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path)
-    const city = req.body.city || "Ranchi"
-    const mock = getMockAnalysis(city)
-    res.json({ analysis: mock.analysis })
+    const { analysis } = req.body
+    const report = new Report({
+      user: req.user._id,
+      analysis,
+      type: "report",
+    })
+    await report.save()
+    res.status(201).json(report)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -46,11 +26,33 @@ export const analyzeReport = async (req, res) => {
 
 export const analyzeAndRecommend = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
-    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path)
-    const city = req.body.city || "Ranchi"
-    const mock = getMockAnalysis(city)
-    res.json(mock)
+    const file = req.file
+    if (!file) {
+      return res.status(400).json({ message: "Please upload a file" })
+    }
+
+    const prompt = "Analyze this medical report and give recommendations in simple terms."
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: fs.readFileSync(file.path).toString("base64"),
+          mimeType: file.mimetype,
+        },
+      },
+    ])
+
+    const analysis = result.response.text()
+    fs.unlinkSync(file.path)
+
+    const report = new Report({
+      user: req.user._id,
+      analysis,
+      type: "report",
+    })
+    await report.save()
+
+    res.json({ analysis })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -58,10 +60,10 @@ export const analyzeAndRecommend = async (req, res) => {
 
 export const getRecommendations = async (req, res) => {
   try {
-    const { symptoms, age, gender, city } = req.body
-    if (!symptoms) return res.status(400).json({ message: "Symptoms are required" })
-    const mock = getMockRecommendations(symptoms, age, gender, city)
-    res.json(mock)
+    const { symptoms } = req.body
+    const prompt = `Based on these symptoms: ${symptoms}, recommend a specialist and give basic advice.`
+    const result = await model.generateContent(prompt)
+    res.json({ recommendations: result.response.text() })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -69,19 +71,14 @@ export const getRecommendations = async (req, res) => {
 
 export const uploadReport = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
-    const report = await Report.create({
-      userId:   req.user._id,
-      fileName: req.file.originalname,
-      fileUrl:  "/uploads/" + req.file.filename,
-      type:     "report",
+    const file = req.file
+    const report = new Report({
+      user: req.user._id,
+      fileUrl: file.path,
+      type: "report",
     })
-    res.json({
-      message: "Report uploaded successfully",
-      fileName: report.fileName,
-      fileUrl:  report.fileUrl,
-      uploadedAt: report.uploadedAt,
-    })
+    await report.save()
+    res.status(201).json(report)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -89,19 +86,14 @@ export const uploadReport = async (req, res) => {
 
 export const uploadPrescription = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" })
-    const prescription = await Report.create({
-      userId:   req.user._id,
-      fileName: req.file.originalname,
-      fileUrl:  "/uploads/" + req.file.filename,
-      type:     "prescription",
+    const file = req.file
+    const report = new Report({
+      user: req.user._id,
+      fileUrl: file.path,
+      type: "prescription",
     })
-    res.json({
-      message: "Prescription uploaded successfully",
-      fileName: prescription.fileName,
-      fileUrl:  prescription.fileUrl,
-      uploadedAt: prescription.uploadedAt,
-    })
+    await report.save()
+    res.status(201).json(report)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -109,10 +101,7 @@ export const uploadPrescription = async (req, res) => {
 
 export const getMyReports = async (req, res) => {
   try {
-    const reports = await Report.find({
-      userId: req.user._id,
-      type: "report"
-    }).sort({ uploadedAt: -1 })
+    const reports = await Report.find({ user: req.user._id, type: "report" })
     res.json(reports)
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -121,35 +110,268 @@ export const getMyReports = async (req, res) => {
 
 export const getMyPrescriptions = async (req, res) => {
   try {
-    const prescriptions = await Report.find({
-      userId: req.user._id,
-      type: "prescription"
-    }).sort({ uploadedAt: -1 })
-    res.json(prescriptions)
+    const reports = await Report.find({ user: req.user._id, type: "prescription" })
+    res.json(reports)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 }
 
-const getMockAnalysis = (city) => {
-  const hospitals = JHARKHAND_HOSPITALS[city] || JHARKHAND_HOSPITALS["Ranchi"]
-  return {
-    analysis: "Report Analysis:\n\n1. Key Findings: Slightly elevated blood glucose (126 mg/dL). Hemoglobin at 11.2 g/dL indicates mild anaemia. Blood pressure 138/88 mmHg is borderline high.\n\n2. Abnormal Values:\n- Blood Glucose: 126 mg/dL (Normal: 70-100) HIGH\n- Hemoglobin: 11.2 g/dL (Normal: 13.5-17.5) LOW\n- Blood Pressure: 138/88 mmHg BORDERLINE\n\n3. Discuss with doctor:\n- Elevated blood sugar may indicate pre-diabetes\n- Low hemoglobin needs iron supplements\n- Blood pressure needs regular monitoring",
-    summary: "Report shows borderline diabetes, mild anaemia and elevated blood pressure.",
-    specialists: [
-      { speciality: "Endocrinologist", reason: "Elevated blood glucose needs diabetes evaluation", hospital: hospitals[0] },
-      { speciality: "General Physician", reason: "Overall health assessment and BP management", hospital: hospitals[1] || hospitals[0] },
-      { speciality: "Cardiologist", reason: "Borderline BP needs cardiac evaluation", hospital: hospitals[2] || hospitals[0] },
-    ],
+import multer from "multer"
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+})
+export const upload = multer({ storage })
+
+// Helper to get nearest doctors
+const getRecommendedDoctors = async (doctorType, userLat, userLng) => {
+  try {
+    const uLat = parseFloat(userLat);
+    const uLng = parseFloat(userLng);
+    
+    console.log(`Searching for ${doctorType} near ${uLat}, ${uLng}`);
+
+    // Normalization mapping
+    const mapping = {
+      "heart": "Cardiologist",
+      "skin": "Dermatologist",
+      "bone": "Orthopedic",
+      "brain": "Neurologist",
+      "stomach": "Gastroenterologist",
+      "ear": "ENT",
+      "nose": "ENT",
+      "throat": "ENT",
+      "lung": "Pulmonologist"
+    };
+
+    let normalizedType = doctorType || "General Physician";
+    for (const [key, value] of Object.entries(mapping)) {
+      if (normalizedType.toLowerCase().includes(key)) {
+        normalizedType = value;
+        break;
+      }
+    }
+
+    const pipeline = [
+      { 
+        $match: { 
+          speciality: { $regex: new RegExp(normalizedType, "i") } 
+        } 
+      },
+      {
+        $lookup: {
+          from: "hospitals",
+          localField: "hospital",
+          foreignField: "name",
+          as: "hospitalInfo"
+        }
+      },
+      {
+        $project: {
+          name: 1, speciality: 1, hospital: 1, city: 1, image: 1, fee: 1,
+          hLat: { $arrayElemAt: ["$hospitalInfo.lat", 0] },
+          hLng: { $arrayElemAt: ["$hospitalInfo.lng", 0] }
+        }
+      }
+    ];
+
+    const doctors = await Doctor.aggregate(pipeline);
+
+    if (!doctors.length) {
+      // Fallback to General Physician if no specific specialist found
+      return await Doctor.aggregate([
+        { $match: { speciality: /General Physician/i } },
+        {
+          $lookup: { from: "hospitals", localField: "hospital", foreignField: "name", as: "hospitalInfo" }
+        },
+        {
+          $project: {
+            name: 1, speciality: 1, hospital: 1, city: 1, image: 1, fee: 1,
+            hLat: { $arrayElemAt: ["$hospitalInfo.lat", 0] },
+            hLng: { $arrayElemAt: ["$hospitalInfo.lng", 0] }
+          }
+        },
+        { $limit: 3 }
+      ]);
+    }
+
+    const processedDoctors = doctors.map(d => {
+      const dLat = parseFloat(d.hLat);
+      const dLng = parseFloat(d.hLng);
+
+      if (isNaN(dLat) || isNaN(dLng) || isNaN(uLat) || isNaN(uLng)) {
+        return { ...d, distance: "N/A" };
+      }
+
+      const radLat = (dLat - uLat) * Math.PI / 180;
+      const radLng = (dLng - uLng) * Math.PI / 180;
+      const a = Math.sin(radLat/2) * Math.sin(radLat/2) + 
+                Math.cos(uLat * Math.PI / 180) * Math.cos(dLat * Math.PI / 180) * 
+                Math.sin(radLng/2) * Math.sin(radLng/2);
+      const distance = (6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+      return { ...d, distance: parseFloat(distance) };
+    });
+
+    return processedDoctors
+      .filter(d => d.distance !== "N/A")
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 3);
+  } catch (error) {
+    console.error("Error in getRecommendedDoctors:", error);
+    return [];
   }
+};
+
+export const analyzeSymptoms = async (req, res) => {
+  try {
+    const { symptoms, lat, lng } = req.body;
+    if (!symptoms) return res.status(400).json({ success: false, message: "Symptoms are required" });
+
+    const prompt = `Act as a friendly medical assistant for non-medical users.
+
+Explain the condition in VERY simple and easy language.
+
+Respond ONLY in this JSON format:
+
+{
+  "problem": "Explain in 1-2 very simple sentences (like talking to a 10-year-old)",
+  "whatItMeans": "Explain what is happening in the body in simple words",
+  "severity": "Low | Medium | High",
+  "whatToDo": ["simple step 1", "simple step 2", "simple step 3"],
+  "doctorType": "General Physician | Cardiologist | Dermatologist | Neurologist | Orthopedic | ENT | Gastroenterologist | Pulmonologist"
 }
 
-const getMockRecommendations = (symptoms, age, gender, city) => {
-  const hospitals = JHARKHAND_HOSPITALS[city] || JHARKHAND_HOSPITALS["Ranchi"]
-  const s = symptoms.toLowerCase()
-  if (s.includes("chest") || s.includes("heart")) return { summary: "Symptoms suggest cardiac condition.", specialists: [{ speciality: "Cardiologist", reason: "Chest symptoms need cardiac evaluation", hospital: hospitals[0] }, { speciality: "General Physician", reason: "Initial assessment needed", hospital: hospitals[1] || hospitals[0] }] }
-  if (s.includes("skin") || s.includes("rash")) return { summary: "Symptoms indicate skin condition.", specialists: [{ speciality: "Dermatologist", reason: "Skin issues need dermatological evaluation", hospital: hospitals[0] }, { speciality: "General Physician", reason: "General assessment needed", hospital: hospitals[1] || hospitals[0] }] }
-  if (s.includes("fever") || s.includes("cold")) return { summary: "Symptoms suggest respiratory infection.", specialists: [{ speciality: "General Physician", reason: "Fever needs general medical evaluation", hospital: hospitals[0] }, { speciality: "Pulmonologist", reason: "Respiratory symptoms need lung evaluation", hospital: hospitals[1] || hospitals[0] }] }
-  if (s.includes("head") || s.includes("migraine")) return { summary: "Symptoms suggest neurological condition.", specialists: [{ speciality: "Neurologist", reason: "Headaches need neurological assessment", hospital: hospitals[0] }, { speciality: "General Physician", reason: "BP check and general evaluation", hospital: hospitals[1] || hospitals[0] }] }
-  return { summary: "General medical evaluation recommended.", specialists: [{ speciality: "General Physician", reason: "Comprehensive health evaluation for your symptoms", hospital: hospitals[0] }, { speciality: "Internal Medicine", reason: "Detailed investigation needed", hospital: hospitals[1] || hospitals[0] }] }
+Rules:
+- Do NOT use medical jargon
+- Use simple everyday words
+- Keep sentences short
+- Avoid complex terms like "hypertension", use "high blood pressure"
+- Make it easy for a normal person to understand
+- Always return valid JSON only
+- If unsure, use "General Physician"
+
+Input:
+Patient Input:
+${symptoms}
+
+Analyze carefully and choose the most relevant doctor specialization.`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.1-8b-instant",
+      response_format: { type: "json_object" }
+    });
+
+    let aiResponse;
+    try {
+      aiResponse = JSON.parse(completion.choices[0].message.content);
+    } catch (parseErr) {
+      console.error("AI Parsing failed:", parseErr);
+      aiResponse = {
+        problem: "I couldn't fully understand that, but let's be safe.",
+        whatItMeans: "Your body is showing some signs that need attention.",
+        severity: "Medium",
+        doctorType: "General Physician",
+        whatToDo: ["Rest well", "Drink plenty of water", "Talk to a doctor"]
+      };
+    }
+
+    const doctors = await getRecommendedDoctors(aiResponse.doctorType, lat, lng);
+
+    res.json({
+      success: true,
+      ...aiResponse,
+      doctors
+    });
+  } catch (error) {
+    console.error("Analyze Symptoms Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const analyzeReportNew = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+
+    let extractedText = "";
+    const filePath = req.file.path;
+
+    if (req.file.mimetype === "application/pdf") {
+      const dataBuffer = fs.readFileSync(filePath);
+      const parser = new PDFParse({ data: dataBuffer });
+      const data = await parser.getText();
+      extractedText = data.text;
+    } else if (req.file.mimetype.startsWith("image/")) {
+      const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
+      extractedText = text;
+    } else if (req.file.mimetype === "text/plain") {
+      extractedText = fs.readFileSync(filePath, 'utf8');
+    } else {
+      return res.status(400).json({ success: false, message: "Unsupported file type" });
+    }
+
+    const { lat, lng } = req.body;
+    const prompt = `Act as a friendly medical assistant for non-medical users.
+
+Explain the condition in VERY simple and easy language.
+
+Respond ONLY in this JSON format:
+
+{
+  "problem": "Explain in 1-2 very simple sentences (like talking to a 10-year-old)",
+  "whatItMeans": "Explain what is happening in the body in simple words",
+  "severity": "Low | Medium | High",
+  "whatToDo": ["simple step 1", "simple step 2", "simple step 3"],
+  "doctorType": "General Physician | Cardiologist | Dermatologist | Neurologist | Orthopedic | ENT | Gastroenterologist | Pulmonologist"
 }
+
+Rules:
+- Do NOT use medical jargon
+- Use simple everyday words
+- Keep sentences short
+- Avoid complex terms like "hypertension", use "high blood pressure"
+- Make it easy for a normal person to understand
+- Always return valid JSON only
+- If unsure, use "General Physician"
+
+Input:
+Patient Input:
+${extractedText}
+
+Analyze carefully and choose the most relevant doctor specialization.`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.1-8b-instant",
+      response_format: { type: "json_object" }
+    });
+
+    let aiResponse;
+    try {
+      aiResponse = JSON.parse(completion.choices[0].message.content);
+    } catch (parseErr) {
+      aiResponse = {
+        problem: "I couldn't fully understand that, but let's be safe.",
+        whatItMeans: "Your body is showing some signs that need attention.",
+        severity: "Medium",
+        doctorType: "General Physician",
+        whatToDo: ["Rest well", "Drink plenty of water", "Talk to a doctor"]
+      };
+    }
+
+    const doctors = await getRecommendedDoctors(aiResponse.doctorType, lat, lng);
+
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      ...aiResponse,
+      doctors
+    });
+  } catch (error) {
+    console.error("Analyze Report Error:", error);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

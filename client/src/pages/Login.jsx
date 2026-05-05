@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, Link, useLocation } from "react-router-dom"
 import axios from "axios"
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -22,6 +22,8 @@ function validateLogin(email, password) {
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from || "/dashboard"
 
   // These store what the user types
   const [email, setEmail] = useState("")
@@ -62,8 +64,8 @@ export default function Login() {
       // Also save user name so Dashboard can show it
       localStorage.setItem("user", JSON.stringify(res.data.user))
 
-      // Go to dashboard after successful login
-      navigate("/dashboard")
+      // Go to intended page or dashboard after successful login
+      navigate(from)
 
     } catch (err) {
       // Show error message if login fails

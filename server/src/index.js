@@ -31,6 +31,8 @@ const startServer = async () => {
   app.use("/api/users",        userRoutes)
   app.use("/api/appointments", appointmentRoutes)
   app.use("/api/report",       reportRoutes)
+  app.use("/api/ai",           reportRoutes)
+  app.use("/api/aiRecomend",   reportRoutes)
   app.use("/api/doctors",      doctorRoutes)
   app.use("/api/hospitals",    hospitalRoutes)
 

@@ -92,18 +92,18 @@ export default function VideoConsult() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-[40px] shadow-2xl p-12 text-center max-w-md w-full border border-gray-100 relative overflow-hidden animate-in zoom-in duration-500">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 blur-[40px] rounded-full"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 blur-[40px] rounded-full"></div>
           <div className="relative z-10">
-            <div className="w-24 h-24 bg-teal-100 rounded-[32px] flex items-center justify-center mx-auto mb-8 text-teal-600 shadow-xl shadow-teal-100">
+            <div className="w-24 h-24 bg-indigo-100 rounded-[32px] flex items-center justify-center mx-auto mb-8 text-indigo-600 shadow-xl shadow-indigo-100">
               <CheckCircle size={48} />
             </div>
             <h2 className="text-3xl font-black text-gray-900 mb-2">Session Complete</h2>
             <p className="text-gray-500 font-medium mb-8">Your consultation with Dr. {selectedDoctor.name.split(' ')[0]} is successfully concluded.</p>
             <div className="flex flex-col gap-4">
-              <button onClick={() => navigate("/profile")} className="w-full bg-teal-600 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-teal-700 transition shadow-xl shadow-teal-100">
+              <button onClick={() => navigate("/profile")} className="w-full bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition shadow-xl shadow-indigo-100">
                 View Medical Records
               </button>
-              <button onClick={() => navigate("/medicines")} className="w-full bg-white border-2 border-gray-100 text-gray-600 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:border-teal-400 hover:text-teal-600 transition shadow-sm">
+              <button onClick={() => navigate("/medicines")} className="w-full bg-white border-2 border-gray-100 text-gray-600 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 transition shadow-sm">
                 Order E-Prescription
               </button>
             </div>
@@ -118,7 +118,7 @@ export default function VideoConsult() {
       
       {/* ── PREMIUM HEADER ── */}
       <div className="bg-gray-900 pt-16 pb-32 px-6 relative overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-teal-500/20 blur-[100px] rounded-full"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 blur-[100px] rounded-full"></div>
         <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full"></div>
         
         <div className="max-w-5xl mx-auto relative z-10 text-center">
@@ -126,7 +126,7 @@ export default function VideoConsult() {
             <Video size={32} />
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-            Virtual <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Care Hub</span>
+            Virtual <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-300">Care Hub</span>
           </h1>
           <p className="text-gray-400 font-medium text-lg max-w-2xl mx-auto">
             Connect instantly with top specialists across the network for secure, high-definition tele-consultations.
@@ -147,7 +147,7 @@ export default function VideoConsult() {
             <div key={s.id} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-[20px] flex items-center justify-center transition-all duration-500 shadow-sm ${
-                  step > s.id ? "bg-teal-600 text-white shadow-teal-200" :
+                  step > s.id ? "bg-indigo-600 text-white shadow-teal-200" :
                   step === s.id ? "bg-gray-900 text-white shadow-gray-300 scale-110" :
                   "bg-gray-50 text-gray-400 border border-gray-100"
                 }`}>
@@ -161,7 +161,7 @@ export default function VideoConsult() {
               </div>
               {i < 3 && (
                 <div className={`w-12 md:w-24 h-1 mx-4 rounded-full transition-all duration-500 ${
-                  step > s.id ? "bg-teal-600" : "bg-gray-100"
+                  step > s.id ? "bg-indigo-600" : "bg-gray-100"
                 }`} />
               )}
             </div>
@@ -187,21 +187,21 @@ export default function VideoConsult() {
 
             {fetching ? (
               <div className="py-20 text-center">
-                <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Specialists...</p>
               </div>
             ) : doctors.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-[32px] border border-gray-100 shadow-sm">
                 <Stethoscope size={48} className="mx-auto text-gray-300 mb-6" />
                 <p className="text-gray-500 font-bold mb-2">No specialists found in {city}</p>
-                <button onClick={() => setCity("All")} className="text-[10px] font-black text-teal-600 uppercase tracking-widest hover:underline">View All Locations</button>
+                <button onClick={() => setCity("All")} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">View All Locations</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {doctors.map((doctor) => (
                   <div key={doctor._id} className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-teal-200 transition-all duration-300 group flex flex-col justify-between">
                     <div className="flex gap-5 mb-6">
-                      <div className="w-20 h-20 rounded-[24px] bg-gray-50 flex items-center justify-center text-teal-600 font-black text-2xl shrink-0 group-hover:bg-teal-600 group-hover:text-white transition-all shadow-inner border border-gray-100">
+                      <div className="w-20 h-20 rounded-[24px] bg-gray-50 flex items-center justify-center text-indigo-600 font-black text-2xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner border border-gray-100">
                         {doctor.name.split(" ").map((n) => n[0]).join("").slice(0,2)}
                       </div>
                       <div>
@@ -211,7 +211,7 @@ export default function VideoConsult() {
                             {doctor.available ? "Online" : "Offline"}
                           </span>
                         </div>
-                        <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2">{doctor.speciality}</p>
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">{doctor.speciality}</p>
                         <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
                           <MapPin size={14} className="text-gray-400" /> {doctor.hospital}, {doctor.city}
                         </div>
@@ -296,7 +296,7 @@ export default function VideoConsult() {
                     placeholder="E.g., I've been experiencing severe migraines and nausea for the past 48 hours..."
                     rows={4}
                     className={`w-full bg-gray-50 border-2 px-6 py-5 rounded-[24px] font-medium text-gray-800 focus:outline-none transition-all resize-none ${
-                      problemError ? "border-red-400 focus:border-red-500 bg-red-50/30" : "border-gray-50 focus:border-teal-500 focus:bg-white"
+                      problemError ? "border-red-400 focus:border-red-500 bg-red-50/30" : "border-gray-50 focus:border-indigo-500 focus:bg-white"
                     }`}
                   />
                   {problemError && <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-2 px-2 flex items-center gap-1.5"><AlertCircle size={12} /> {problemError}</p>}
@@ -335,7 +335,7 @@ export default function VideoConsult() {
 
               <div className="flex justify-end pt-4">
                 <button onClick={handleContinueToPayment}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[2px] transition-all shadow-xl shadow-teal-100 flex items-center gap-3">
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[2px] transition-all shadow-xl shadow-indigo-100 flex items-center gap-3">
                   Proceed to Payment <ArrowRight size={16} />
                 </button>
               </div>
@@ -360,12 +360,12 @@ export default function VideoConsult() {
                 <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 space-y-6">
                   <div className="flex justify-between items-center pb-6 border-b border-gray-200">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-teal-600 font-black">
+                      <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600 font-black">
                         {selectedDoctor.name.split(" ").map((n) => n[0]).join("").slice(0,2)}
                       </div>
                       <div>
                         <p className="font-black text-gray-900">{selectedDoctor.name}</p>
-                        <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest">{selectedDoctor.speciality}</p>
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{selectedDoctor.speciality}</p>
                       </div>
                     </div>
                   </div>
@@ -385,7 +385,7 @@ export default function VideoConsult() {
                   </div>
                   <div className="flex justify-between items-end pt-6 border-t border-gray-200">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Amount</span>
-                    <span className="text-3xl font-black text-teal-600">₹{selectedDoctor.fee}</span>
+                    <span className="text-3xl font-black text-indigo-600">₹{selectedDoctor.fee}</span>
                   </div>
                 </div>
               </div>
@@ -403,7 +403,7 @@ export default function VideoConsult() {
                       ].map((m) => (
                         <label key={m.id} className="flex items-center justify-between p-4 rounded-[20px] border-2 border-gray-50 hover:border-teal-200 cursor-pointer group transition-all">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-teal-600 group-hover:bg-teal-50 transition-colors">
+                            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
                               <m.icon size={18} />
                             </div>
                             <div>
@@ -411,8 +411,8 @@ export default function VideoConsult() {
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{m.desc}</p>
                             </div>
                           </div>
-                          <div className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-teal-500 flex items-center justify-center">
-                            <div className="w-2.5 h-2.5 rounded-full bg-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          <div className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-indigo-500 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                           </div>
                         </label>
                       ))}
@@ -423,14 +423,14 @@ export default function VideoConsult() {
                     </button>
                   </div>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center bg-teal-50/50 rounded-[32px] border border-teal-100 p-8 animate-in zoom-in-95 duration-500">
-                    <div className="w-20 h-20 bg-teal-100 rounded-[24px] flex items-center justify-center text-teal-600 mb-6 shadow-xl shadow-teal-100/50">
+                  <div className="h-full flex flex-col items-center justify-center text-center bg-indigo-50/50 rounded-[32px] border border-indigo-100 p-8 animate-in zoom-in-95 duration-500">
+                    <div className="w-20 h-20 bg-indigo-100 rounded-[24px] flex items-center justify-center text-indigo-600 mb-6 shadow-xl shadow-indigo-100/50">
                       <CheckCircle size={40} />
                     </div>
                     <p className="text-2xl font-black text-gray-900 mb-2">Payment Verified</p>
                     <p className="text-gray-500 font-medium text-sm mb-8">Transaction ID: TXN-{Math.floor(Math.random()*1000000)}</p>
                     <button onClick={() => setStep(4)}
-                      className="w-full bg-teal-600 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-teal-700 transition shadow-xl shadow-teal-100">
+                      className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition shadow-xl shadow-indigo-100">
                       {consultType === "video" ? "Initialize Session" : "View Instructions"}
                     </button>
                   </div>
@@ -448,14 +448,14 @@ export default function VideoConsult() {
                 <div className="w-24 h-24 bg-gray-900 rounded-[32px] flex items-center justify-center text-white mx-auto mb-8 shadow-2xl shadow-gray-300 relative">
                   <Video size={40} />
                   <span className="absolute -top-2 -right-2 flex h-6 w-6">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-6 w-6 bg-teal-500 border-2 border-white"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-6 w-6 bg-indigo-500 border-2 border-white"></span>
                   </span>
                 </div>
                 <h2 className="text-3xl font-black text-gray-900 mb-4">Ready for Session</h2>
                 <p className="text-gray-500 font-medium mb-10 max-w-md mx-auto">Please ensure you are in a quiet room with good internet connectivity before joining the room.</p>
                 <button onClick={() => setInCall(true)}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-12 py-5 rounded-2xl text-[12px] font-black uppercase tracking-[2px] transition-all shadow-xl shadow-teal-200">
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-5 rounded-2xl text-[12px] font-black uppercase tracking-[2px] transition-all shadow-xl shadow-teal-200">
                   Join Virtual Clinic
                 </button>
               </>
@@ -488,7 +488,7 @@ export default function VideoConsult() {
                     My Appointments
                   </button>
                   <a href={`https://www.google.com/maps/search/?api=1&query=${selectedDoctor.hospital}`} target="_blank" rel="noreferrer"
-                    className="bg-white border-2 border-gray-100 text-gray-700 hover:border-teal-400 hover:text-teal-600 px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
+                    className="bg-white border-2 border-gray-100 text-gray-700 hover:border-indigo-400 hover:text-indigo-600 px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
                     Get Directions
                   </a>
                 </div>
@@ -509,12 +509,12 @@ function CallScreen({ doctor, onEnd }) {
     <div className="min-h-screen bg-black flex flex-col animate-in fade-in duration-500">
       <div className="bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-white/5 sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white font-black shadow-lg shadow-teal-900/50">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-teal-900/50">
             {doctor.name.split(" ").map((n) => n[0]).join("").slice(0,2)}
           </div>
           <div>
             <p className="text-white font-black text-lg leading-none mb-1">{doctor.name}</p>
-            <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest">{doctor.speciality}</p>
+            <p className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">{doctor.speciality}</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
@@ -532,7 +532,7 @@ function CallScreen({ doctor, onEnd }) {
       <div className="flex-1 relative bg-gray-900">
         {/* Placeholder background while iframe loads */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 border-4 border-gray-800 border-t-teal-500 rounded-full animate-spin mb-4"></div>
+          <div className="w-16 h-16 border-4 border-gray-800 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Establishing Connection</p>
         </div>
         <iframe src={jitsiUrl} className="absolute inset-0 w-full h-full z-10" allow="camera; microphone; fullscreen; display-capture" title="Video Consultation" />

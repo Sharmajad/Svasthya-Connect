@@ -2,18 +2,18 @@ import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import axios from "axios"
 import HospitalCard from "../components/HospitalCard"
-import { 
-  Building2, 
-  Stethoscope, 
-  CalendarCheck2, 
-  ChevronRight, 
-  ArrowLeft, 
-  CheckCircle2, 
-  MapPin, 
-  Clock, 
-  Video, 
-  PhoneCall, 
-  User, 
+import {
+  Building2,
+  Stethoscope,
+  CalendarCheck2,
+  ChevronRight,
+  ArrowLeft,
+  CheckCircle2,
+  MapPin,
+  Clock,
+  Video,
+  PhoneCall,
+  User,
   Star,
   Activity,
   CreditCard,
@@ -56,10 +56,10 @@ export default function Appointment() {
   const [selectedCity, setSelectedCity] = useState("")
   const [selectedHospital, setSelectedHospital] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState(null)
-  const [consultType, setConsultType] = useState("") 
+  const [consultType, setConsultType] = useState("")
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
-  
+
   // Patient Details
   const [patientData, setPatientData] = useState({
     name: user.name || "",
@@ -142,7 +142,7 @@ export default function Appointment() {
       setSelectedDoctor(location.state.doctor)
       setSelectedCity(location.state.city)
       setSelectedHospital(location.state.hospital)
-      setCurrentStep(3) 
+      setCurrentStep(3)
     } else {
       fetchCities()
     }
@@ -162,7 +162,7 @@ export default function Appointment() {
 
   const handleNext = () => {
     setValidationError("")
-    
+
     // Auth Check before final step (Step 5)
     if (currentStep === 4 && !token) {
       alert("Please login first to continue booking")
@@ -199,7 +199,7 @@ export default function Appointment() {
       setValidationError("Please login to complete your booking.")
       // Store intended path for redirect after login
       localStorage.setItem("redirectAfterLogin", "/appointment")
-      
+
       setTimeout(() => {
         navigate("/login", { state: { from: "/appointment" } })
       }, 1500)
@@ -220,8 +220,8 @@ export default function Appointment() {
           hospital: selectedDoctor.hospital,
           speciality: selectedDoctor.speciality,
           doctorName: selectedDoctor.name,
-          date, 
-          time, 
+          date,
+          time,
           consultType,
           fee: selectedDoctor.fee,
         },
@@ -249,7 +249,7 @@ export default function Appointment() {
             <h2 className="text-4xl font-black text-gray-900 tracking-tight">Success!</h2>
             <p className="text-gray-500 font-medium">Your appointment with Dr. {selectedDoctor?.name} is confirmed.</p>
           </div>
-          
+
           <div className="bg-gray-50 rounded-3xl p-8 text-left border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white font-bold uppercase">
@@ -257,7 +257,7 @@ export default function Appointment() {
               </div>
               <div>
                 <p className="font-black text-gray-900">{selectedDoctor?.name}</p>
-                <p className="text-blue-600 text-[10px] font-black uppercase tracking-widest">{selectedDoctor?.speciality}</p>
+                <p className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">{selectedDoctor?.speciality}</p>
               </div>
             </div>
             <div className="pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
@@ -272,8 +272,8 @@ export default function Appointment() {
             </div>
           </div>
 
-          <button 
-            onClick={() => navigate("/dashboard")} 
+          <button
+            onClick={() => navigate("/dashboard")}
             className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all shadow-2xl shadow-gray-200"
           >
             Go to Dashboard
@@ -286,19 +286,19 @@ export default function Appointment() {
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        
+
         {/* STEPPER HEADER */}
         <div className="max-w-3xl mx-auto mb-16 text-center space-y-6">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
-            <ShieldCheck size={16} className="text-blue-600" />
+            <ShieldCheck size={16} className="text-indigo-600" />
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Secured Booking Flow</span>
           </div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">Complete Your Booking</h1>
-          
+
           <div className="relative pt-8">
             <div className="absolute top-[52px] left-0 w-full h-1 bg-gray-200 rounded-full z-0"></div>
-            <div 
-              className="absolute top-[52px] left-0 h-1 bg-blue-600 rounded-full z-0 transition-all duration-700"
+            <div
+              className="absolute top-[52px] left-0 h-1 bg-indigo-600 rounded-full z-0 transition-all duration-700"
               style={{ width: `${((currentStep - (fromAI ? 3 : 1)) / (fromAI ? 2 : 4)) * 100}%` }}
             ></div>
             <div className="relative z-10 flex justify-between">
@@ -314,12 +314,11 @@ export default function Appointment() {
                 { step: 5, icon: CreditCard, label: "Review" }
               ]).map((s) => (
                 <div key={s.step} className="flex flex-col items-center gap-3">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${
-                    currentStep >= s.step ? "bg-blue-600 border-white text-white shadow-xl shadow-blue-100" : "bg-white border-gray-100 text-gray-300"
-                  }`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${currentStep >= s.step ? "bg-indigo-600 border-white text-white shadow-xl shadow-indigo-100" : "bg-white border-gray-100 text-gray-300"
+                    }`}>
                     {currentStep > s.step ? <CheckCircle2 size={20} /> : <s.icon size={20} />}
                   </div>
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${currentStep >= s.step ? "text-blue-600" : "text-gray-400"}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${currentStep >= s.step ? "text-indigo-600" : "text-gray-400"}`}>
                     {s.label}
                   </span>
                 </div>
@@ -331,11 +330,11 @@ export default function Appointment() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* MAIN CONTENT AREA */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             <div className="bg-white rounded-[40px] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden min-h-[500px] flex flex-col">
-              
+
               <div className="p-10 flex-1 flex flex-col">
-                
+
                 {/* AI RECOMMENDED BANNER */}
                 {fromAI && (
                   <div className="mb-8 bg-purple-50 border border-purple-100 p-4 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
@@ -358,10 +357,10 @@ export default function Appointment() {
                           <h2 className="text-2xl font-black text-gray-900">Select City</h2>
                           <p className="text-xs font-medium text-gray-400">Where are you looking for healthcare?</p>
                         </div>
-                        <select 
+                        <select
                           value={selectedCity}
                           onChange={(e) => { setSelectedCity(e.target.value); setSelectedHospital(""); setSelectedDoctor(null); }}
-                          className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-2xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                          className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-2xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all appearance-none cursor-pointer"
                         >
                           <option value="">Choose City</option>
                           {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -383,13 +382,13 @@ export default function Appointment() {
 
                         {hospitalsLoading ? (
                           <div className="py-20 flex flex-col items-center justify-center gap-4">
-                            <Loader2 className="animate-spin text-blue-600" size={32} />
+                            <Loader2 className="animate-spin text-indigo-600" size={32} />
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Hospitals...</p>
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {hospitals.map(h => (
-                              <HospitalCard 
+                              <HospitalCard
                                 key={h._id}
                                 hospital={h}
                                 onSelect={(hospital) => { setSelectedHospital(hospital.name); setCurrentStep(2); }}
@@ -421,31 +420,30 @@ export default function Appointment() {
 
                     {doctorsLoading ? (
                       <div className="py-20 flex flex-col items-center justify-center gap-4">
-                        <Loader2 className="animate-spin text-blue-600" size={32} />
+                        <Loader2 className="animate-spin text-indigo-600" size={32} />
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Specialists...</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {doctorsList.length > 0 ? doctorsList.map(doc => (
-                          <button 
+                          <button
                             key={doc._id}
                             onClick={() => { setSelectedDoctor(doc); setCurrentStep(3); }}
-                            className={`flex items-center gap-4 p-5 rounded-3xl border-2 transition-all text-left group ${
-                              selectedDoctor?._id === doc._id ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
-                            }`}
+                            className={`flex items-center gap-4 p-5 rounded-3xl border-2 transition-all text-left group ${selectedDoctor?._id === doc._id ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                              }`}
                           >
                             <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-50 group-hover:scale-105 transition-transform">
                               {doc.image ? (
                                 <img src={doc.image} alt={doc.name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center font-black bg-blue-50 text-blue-600">
+                                <div className="w-full h-full flex items-center justify-center font-black bg-indigo-50 text-indigo-600">
                                   {doc.name[0]}
                                 </div>
                               )}
                             </div>
                             <div className="flex-1">
                               <p className="font-black text-sm mb-0.5">{doc.name}</p>
-                              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-blue-400" : "text-blue-600"}`}>{doc.speciality}</p>
+                              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-indigo-400" : "text-indigo-600"}`}>{doc.speciality}</p>
                               <div className="flex items-center gap-3 mt-2">
                                 <span className={`text-[9px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-gray-400" : "text-gray-400"}`}>₹{doc.fee}</span>
                                 <span className="flex items-center gap-1 text-[9px] text-orange-400 font-black"><Star size={10} fill="currentColor" /> {doc.rating || "4.9"}</span>
@@ -476,14 +474,14 @@ export default function Appointment() {
                         <div className="space-y-4">
                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Date</label>
                           <div className="relative group">
-                            <input 
+                            <input
                               type="date"
                               min={todayStr()}
                               value={date}
                               onChange={(e) => { setDate(e.target.value); setValidationError(""); }}
-                              className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                              className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all appearance-none cursor-pointer"
                             />
-                            <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-blue-600" size={20} />
+                            <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-indigo-600" size={20} />
                           </div>
                         </div>
 
@@ -495,12 +493,11 @@ export default function Appointment() {
                               { id: "video", icon: Video, label: "Video Consult" },
                               { id: "whatsapp", icon: PhoneCall, label: "Audio Consult" }
                             ].map(m => (
-                              <button 
+                              <button
                                 key={m.id}
                                 onClick={() => setConsultType(m.id)}
-                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
-                                  consultType === m.id ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-blue-200"
-                                }`}
+                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${consultType === m.id ? "bg-indigo-600 border-indigo-600 text-white shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-blue-200"
+                                  }`}
                               >
                                 <m.icon size={18} />
                                 <span className="text-xs font-bold uppercase tracking-widest">{m.label}</span>
@@ -514,12 +511,11 @@ export default function Appointment() {
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Time Slot</label>
                         <div className="grid grid-cols-2 gap-3">
                           {SLOTS.map(s => (
-                            <button 
+                            <button
                               key={s}
                               onClick={() => { setTime(s); setValidationError(""); }}
-                              className={`py-4 rounded-2xl text-[11px] font-black uppercase tracking-tight border-2 transition-all ${
-                                time === s ? "bg-gray-900 text-white border-gray-900 shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-blue-400"
-                              }`}
+                              className={`py-4 rounded-2xl text-[11px] font-black uppercase tracking-tight border-2 transition-all ${time === s ? "bg-gray-900 text-white border-gray-900 shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-indigo-400"
+                                }`}
                             >
                               {s}
                             </button>
@@ -541,44 +537,43 @@ export default function Appointment() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-4">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
-                        <input 
+                        <input
                           type="text"
                           value={patientData.name}
-                          onChange={(e) => setPatientData({...patientData, name: e.target.value})}
+                          onChange={(e) => setPatientData({ ...patientData, name: e.target.value })}
                           placeholder="Enter patient's name"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
-                        <input 
+                        <input
                           type="tel"
                           value={patientData.phone}
-                          onChange={(e) => setPatientData({...patientData, phone: e.target.value})}
+                          onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
                           placeholder="Contact number"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Age</label>
-                        <input 
+                        <input
                           type="number"
                           value={patientData.age}
-                          onChange={(e) => setPatientData({...patientData, age: e.target.value})}
+                          onChange={(e) => setPatientData({ ...patientData, age: e.target.value })}
                           placeholder="Years"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gender</label>
                         <div className="flex gap-4">
                           {["male", "female", "other"].map(g => (
-                            <button 
+                            <button
                               key={g}
-                              onClick={() => setPatientData({...patientData, gender: g})}
-                              className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
-                                patientData.gender === g ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-100 text-gray-400 hover:border-blue-200"
-                              }`}
+                              onClick={() => setPatientData({ ...patientData, gender: g })}
+                              className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${patientData.gender === g ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-100 text-gray-400 hover:border-blue-200"
+                                }`}
                             >
                               {g}
                             </button>
@@ -600,7 +595,7 @@ export default function Appointment() {
                     <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 space-y-6">
                       <div className="flex justify-between items-center py-4 border-b border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
                             <User size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Patient</span>
@@ -609,7 +604,7 @@ export default function Appointment() {
                       </div>
                       <div className="flex justify-between items-center py-4 border-b border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
                             <MapPin size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Consult Mode</span>
@@ -618,7 +613,7 @@ export default function Appointment() {
                       </div>
                       <div className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
                             <CalendarCheck2 size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Date & Time</span>
@@ -627,9 +622,9 @@ export default function Appointment() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-100 p-6 rounded-3xl flex items-center gap-4">
-                      <Lock className="text-blue-600 shrink-0" size={24} />
-                      <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest leading-relaxed">
+                    <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-3xl flex items-center gap-4">
+                      <Lock className="text-indigo-600 shrink-0" size={24} />
+                      <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest leading-relaxed">
                         Your payment is secured with end-to-end encryption and verified by top medical associations.
                       </p>
                     </div>
@@ -639,7 +634,7 @@ export default function Appointment() {
                 {/* ACTION BUTTONS */}
                 <div className="pt-10 mt-auto flex gap-4">
                   {currentStep > (fromAI ? 3 : 1) && (
-                    <button 
+                    <button
                       onClick={handleBack}
                       className="flex-1 py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] border-2 border-gray-100 text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all flex items-center justify-center gap-2"
                     >
@@ -647,14 +642,14 @@ export default function Appointment() {
                     </button>
                   )}
                   {currentStep < 5 ? (
-                    <button 
+                    <button
                       onClick={handleNext}
-                      className="flex-[2] bg-blue-600 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 flex items-center justify-center gap-2"
+                      className="flex-[2] bg-indigo-600 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-100 flex items-center justify-center gap-2"
                     >
                       Continue <ChevronRight size={16} />
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={handleBooking}
                       disabled={loading}
                       className="flex-[2] bg-gray-900 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-black transition-all shadow-2xl shadow-gray-200 flex items-center justify-center gap-2 disabled:opacity-50"
@@ -687,20 +682,20 @@ export default function Appointment() {
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-12">
             <div className="bg-white rounded-[40px] border border-gray-100 shadow-xl p-8 space-y-8">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Booking Summary</h3>
-              
+
               <div className="flex gap-4 items-start">
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl overflow-hidden shrink-0 border border-gray-100">
                   {selectedDoctor?.image ? (
                     <img src={selectedDoctor.image} alt={selectedDoctor.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-blue-600 font-black text-xl bg-blue-50">
+                    <div className="w-full h-full flex items-center justify-center text-indigo-600 font-black text-xl bg-indigo-50">
                       {selectedDoctor?.name?.[0]}
                     </div>
                   )}
                 </div>
                 <div>
                   <h4 className="font-black text-gray-900">{selectedDoctor?.name || "Dr. Loading..."}</h4>
-                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">{selectedDoctor?.speciality}</p>
+                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-0.5">{selectedDoctor?.speciality}</p>
                   <div className="flex items-center gap-1 text-[10px] text-orange-400 font-black mt-1">
                     <Star size={10} fill="currentColor" /> {selectedDoctor?.rating || "4.9"}
                   </div>
@@ -722,15 +717,15 @@ export default function Appointment() {
                 </div>
                 <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100">
                   <div className="flex items-center gap-2">
-                    <CreditCard size={18} className="text-blue-600" />
+                    <CreditCard size={18} className="text-indigo-600" />
                     <span className="text-sm font-black text-gray-900">Total</span>
                   </div>
-                  <span className="text-2xl font-black text-blue-600">₹{selectedDoctor?.fee || "0"}</span>
+                  <span className="text-2xl font-black text-indigo-600">₹{selectedDoctor?.fee || "0"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-blue-600 rounded-[40px] text-white relative overflow-hidden shadow-xl shadow-blue-200">
+            <div className="p-8 bg-indigo-600 rounded-[40px] text-white relative overflow-hidden shadow-xl shadow-blue-200">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full"></div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-4">Patient Support</p>
               <p className="text-sm font-bold leading-relaxed mb-6">Need help with your booking? Our medical team is online 24/7 to assist you.</p>

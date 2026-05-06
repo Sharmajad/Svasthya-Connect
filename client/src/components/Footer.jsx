@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
+import { Star, ShieldCheck, Quote } from "lucide-react"
 
 const reviews = [
   { name: "Anjali Sharma",   city: "Ranchi",      text: "Booked an appointment at RIMS in minutes. Amazing platform!",                          rating: 5 },
@@ -26,7 +27,7 @@ function MovingReviews() {
     const animate = () => {
       position += speed
       if (position >= totalWidth) position = 0
-      track.style.transform = "translateX(-" + position + "px)"
+      track.style.transform = `translateX(-${position}px)`
       requestAnimationFrame(animate)
     }
 
@@ -36,23 +37,60 @@ function MovingReviews() {
 
   const doubled = [...reviews, ...reviews]
 
+  const renderStars = (count) => {
+    return (
+      <div className="flex gap-0.5">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} size={12} className={i < count ? "text-yellow-400 fill-current" : "text-gray-200 fill-current"} />
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-teal-700 py-10 overflow-hidden">
-      <h2 className="text-white text-xl font-bold text-center mb-6">
-        What Jharkhand Says About Us ?
-      </h2>
+    <div className="bg-slate-900 py-16 overflow-hidden relative">
+      <div className="max-w-6xl mx-auto px-6 mb-12 text-center relative z-10">
+        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-full mb-4">
+          <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Testimonials</span>
+        </div>
+        <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          What <span className="text-indigo-400">Jharkhand</span> Says About Us
+        </h2>
+      </div>
+
       <div className="overflow-hidden">
-        <div ref={trackRef} className="flex gap-5 w-max">
+        <div ref={trackRef} className="flex gap-6 w-max px-6">
           {doubled.map((r, i) => (
-            <div key={i} className="bg-white rounded-xl p-5 w-72 shrink-0 shadow-md">
-              <div className="flex gap-1 mb-2">
-                {"?".repeat(r.rating).split("").map((s, j) => (
-                  <span key={j} className="text-yellow-400 text-sm">{s}</span>
-                ))}
+            <div key={i} className="bg-white/95 backdrop-blur-sm rounded-[32px] p-8 w-[340px] shrink-0 shadow-2xl border border-white/20 transition-all hover:scale-[1.02] hover:bg-white duration-500 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Quote size={64} className="text-indigo-600" />
               </div>
-              <p className="text-gray-600 text-sm italic mb-3">"{r.text}"</p>
-              <p className="text-gray-800 font-semibold text-sm">{r.name}</p>
-              <p className="text-teal-600 text-xs">{r.city}, Jharkhand</p>
+              
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-200">
+                  {r.name[0]}
+                </div>
+                <div>
+                  <h4 className="font-black text-gray-900 leading-tight">{r.name}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{r.city}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    {renderStars(r.rating)}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-gray-600 text-sm leading-relaxed font-medium italic relative z-10">
+                "{r.text}"
+              </p>
+
+              <div className="mt-8 pt-6 border-t border-gray-50 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-green-50 flex items-center justify-center">
+                  <ShieldCheck size={12} className="text-green-600" />
+                </div>
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Verified Patient</span>
+              </div>
             </div>
           ))}
         </div>
@@ -136,13 +174,13 @@ export default function Footer() {
             <div>
               <h3 className="text-white font-semibold mb-4">Quick Links</h3>
               <div className="flex flex-col gap-2 text-sm">
-                <Link to="/" className="hover:text-teal-400 transition">Home</Link>
-                <Link to="/appointment" className="hover:text-teal-400 transition">Book Appointment</Link>
-                <Link to="/video-consult" className="hover:text-teal-400 transition">Video Consult</Link>
-                <Link to="/ai-recommend" className="hover:text-teal-400 transition">AI Health Assistant</Link>
-                <Link to="/nearby" className="hover:text-teal-400 transition">Nearby Hospitals</Link>
-                <Link to="/medicines" className="hover:text-teal-400 transition">Order Medicines</Link>
-                <Link to="/ambulance" className="hover:text-teal-400 transition">Emergency Ambulance</Link>
+                <Link to="/" className="hover:text-indigo-400 transition">Home</Link>
+                <Link to="/appointment" className="hover:text-indigo-400 transition">Book Appointment</Link>
+                <Link to="/video-consult" className="hover:text-indigo-400 transition">Video Consult</Link>
+                <Link to="/ai-recommend" className="hover:text-indigo-400 transition">AI Health Assistant</Link>
+                <Link to="/nearby" className="hover:text-indigo-400 transition">Nearby Hospitals</Link>
+                <Link to="/medicines" className="hover:text-indigo-400 transition">Order Medicines</Link>
+                <Link to="/ambulance" className="hover:text-indigo-400 transition">Emergency Ambulance</Link>
               </div>
             </div>
 
@@ -156,14 +194,14 @@ export default function Footer() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span></span>
-                  <a href="tel:9709899466" className="hover:text-teal-400 transition">
+                  <a href="tel:9709899466" className="hover:text-indigo-400 transition">
                     +91 9709899466
                   </a>
                 </div>
                 <div className="flex items-center gap-2">
                   <span></span>
                   <a href="https://wa.me/919709899466" target="_blank" rel="noreferrer"
-                    className="hover:text-teal-400 transition">
+                    className="hover:text-indigo-400 transition">
                     WhatsApp Us
                   </a>
                 </div>
@@ -180,7 +218,7 @@ export default function Footer() {
             <div>
               <h3 className="text-white font-semibold mb-4">Write a Review</h3>
               {submitted ? (
-                <div className="bg-teal-700 rounded-xl p-4 text-center">
+                <div className="bg-indigo-700 rounded-xl p-4 text-center">
                   <p className="text-white font-medium">? Thank you for your review!</p>
                 </div>
               ) : (
@@ -191,7 +229,7 @@ export default function Footer() {
                     onChange={(e) => setReviewName(e.target.value)}
                     placeholder="Your name"
                     required
-                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
+                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                   />
                   <input
                     type="text"
@@ -199,7 +237,7 @@ export default function Footer() {
                     onChange={(e) => setReviewCity(e.target.value)}
                     placeholder="Your city"
                     required
-                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500"
+                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                   />
                   <textarea
                     value={reviewText}
@@ -207,10 +245,10 @@ export default function Footer() {
                     placeholder="Share your experience..."
                     required
                     rows={3}
-                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 resize-none"
+                    className="bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 resize-none"
                   />
                   <button type="submit"
-                    className="bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg text-sm transition">
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm transition">
                     Submit Review
                   </button>
                 </form>
@@ -223,9 +261,9 @@ export default function Footer() {
           <div className="border-t border-gray-800 pt-6 flex justify-between items-center text-xs text-gray-500">
             <p>2026 Svasthya Connect. All rights reserved. Mahulia, Galudih, Jamshedpur, Jharkhand</p>
             <div className="flex gap-4">
-              <Link to="/privacy" className="hover:text-teal-400 transition">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-teal-400 transition">Terms of Service</Link>
-              <Link to="/disclaimer" className="hover:text-teal-400 transition">Disclaimer</Link>
+              <Link to="/privacy" className="hover:text-indigo-400 transition">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-indigo-400 transition">Terms of Service</Link>
+              <Link to="/disclaimer" className="hover:text-indigo-400 transition">Disclaimer</Link>
             </div>
           </div>
 

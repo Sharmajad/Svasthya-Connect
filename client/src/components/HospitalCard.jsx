@@ -26,7 +26,7 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
   };
 
   const renderStars = (rating) => {
-    if (!rating) return <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase tracking-widest">New</span>;
+    if (!rating) return <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-widest">New</span>;
     
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -53,7 +53,7 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
     <div 
       onClick={() => onSelect(hospital)}
       className={`group relative bg-white rounded-[32px] border-2 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col h-full ${
-        isSelected ? 'border-blue-600 shadow-2xl shadow-blue-100 scale-[1.02]' : 'border-gray-50 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1'
+        isSelected ? 'border-indigo-600 shadow-2xl shadow-indigo-100 scale-[1.02]' : 'border-gray-50 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1'
       }`}
     >
       {/* IMAGE CAROUSEL SECTION */}
@@ -108,7 +108,7 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
         {/* TOP BADGE */}
         <div className="absolute top-4 left-4 flex gap-2">
           <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-sm border border-white">
-            <ShieldCheck size={14} className="text-blue-600" />
+            <ShieldCheck size={14} className="text-indigo-600" />
             <span className="text-[9px] font-black uppercase tracking-widest text-gray-700">Verified</span>
           </div>
         </div>
@@ -118,13 +118,13 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
       <div className="p-6 flex-1 flex flex-col gap-4">
         <div className="space-y-1">
           <div className="flex justify-between items-start">
-            <h3 className="font-black text-xl text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">
+            <h3 className="font-black text-xl text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
               {hospital.name}
             </h3>
           </div>
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2 text-gray-400">
-              <MapPin size={12} className="text-blue-500" />
+              <MapPin size={12} className="text-indigo-500" />
               <span className="text-xs font-bold">{hospital.city}</span>
             </div>
             {renderStars(hospital.rating)}
@@ -140,8 +140,8 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
           <button 
             className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${
               isSelected 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
-                : 'bg-gray-50 text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-blue-50'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
+                : 'bg-gray-50 text-gray-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-indigo-50'
             }`}
           >
             {isSelected ? (

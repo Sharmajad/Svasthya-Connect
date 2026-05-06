@@ -46,11 +46,11 @@ function Navbar() {
 
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-3 group" onClick={() => setMenuOpen(false)}>
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-teal-100 group-hover:scale-105 transition-all">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-indigo-100 group-hover:scale-105 transition-all">
               <img src="/logo.jpeg" alt="Svasthya Connect" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h1 className="text-lg font-black text-gray-900 leading-none tracking-tight">Svasthya<span className="text-teal-600">Connect</span></h1>
+              <h1 className="text-lg font-black text-gray-900 leading-none tracking-tight">Svasthya<span className="text-indigo-600">Connect</span></h1>
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 hidden sm:block">Digital Health Network</p>
             </div>
           </Link>
@@ -68,8 +68,8 @@ function Navbar() {
                     navigate("/login", { state: { message: "Please login to continue booking" } })
                   }
                 }}
-                className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all hover:text-teal-600 ${
-                  isActive(l.to) ? "text-teal-600" : "text-gray-400"
+                className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all hover:text-indigo-600 ${
+                  isActive(l.to) ? "text-indigo-600" : "text-gray-400"
                 } ${l.className || ""}`}
               >
                 <l.icon size={14} className={isActive(l.to) ? "animate-pulse" : ""} />
@@ -83,7 +83,7 @@ function Navbar() {
             {isAuth ? (
               <div className="flex items-center gap-4 pl-6 border-l border-gray-100">
                 <Link to="/dashboard" className="flex items-center gap-2 group">
-                  <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all border border-gray-100">
+                  <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all border border-gray-100">
                     <LayoutDashboard size={18} />
                   </div>
                   <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Dashboard</span>
@@ -137,7 +137,7 @@ function Navbar() {
                   }
                 }}
                 className={`flex flex-col items-center gap-3 p-6 rounded-3xl border border-gray-50 text-[10px] font-black uppercase tracking-widest transition-all ${
-                  isActive(l.to) ? "bg-teal-50 text-teal-600 border-teal-100" : "bg-gray-50 text-gray-400"
+                  isActive(l.to) ? "bg-indigo-50 text-indigo-600 border-indigo-100" : "bg-gray-50 text-gray-400"
                 } ${l.className || ""}`}
               >
                 <l.icon size={20} />
@@ -167,7 +167,7 @@ function Navbar() {
               <Link 
                 to="/login" 
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center bg-teal-600 text-white py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest"
+                className="flex items-center justify-center bg-indigo-600 text-white py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest"
               >
                 Login / Signup
               </Link>

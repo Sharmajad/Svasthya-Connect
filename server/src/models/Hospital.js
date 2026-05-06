@@ -14,6 +14,8 @@ const hospitalSchema = new mongoose.Schema(
     emergency: { type: Boolean, default: true },
     departments: [{ type: String }],
     image:     { type: String, default: "" },
+    images:    [{ type: String }],
+    rating:    { type: Number, default: 4.5 },
     popularity: { type: Number, default: 0 },
   },
   { timestamps: true }

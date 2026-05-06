@@ -187,7 +187,7 @@ const getRecommendedDoctors = async (doctorType, userLat, userLng) => {
         },
         {
           $project: {
-            name: 1, speciality: 1, hospital: 1, city: 1, image: 1, fee: 1,
+            _id: 1, name: 1, speciality: 1, hospital: 1, city: 1, image: 1, fee: 1,
             hLat: { $arrayElemAt: ["$hospitalInfo.lat", 0] },
             hLng: { $arrayElemAt: ["$hospitalInfo.lng", 0] }
           }

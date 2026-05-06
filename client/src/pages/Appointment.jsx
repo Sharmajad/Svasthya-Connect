@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import axios from "axios"
+import HospitalCard from "../components/HospitalCard"
 import { 
   Building2, 
   Stethoscope, 
@@ -20,7 +21,8 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
-  Lock
+  Lock,
+  Sparkles
 } from "lucide-react"
 
 const API = "http://localhost:5000/api"
@@ -33,60 +35,187 @@ export default function Appointment() {
   const user = JSON.parse(localStorage.getItem("user") || "{}")
   const token = localStorage.getItem("token")
 
+  const [fromAI, setFromAI] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
+  // Data Lists & Pagination
+  const [cities, setCities] = useState([])
+  const [hospitals, setHospitals] = useState([])
+  const [hPage, setHPage] = useState(1)
+  const [hPages, setHPages] = useState(1)
+  const [hospitalsLoading, setHospitalsLoading] = useState(false)
+
+  const [doctorsList, setDoctorsList] = useState([])
+  const [dPage, setDPage] = useState(1)
+  const [dPages, setDPages] = useState(1)
+  const [doctorsLoading, setDoctorsLoading] = useState(false)
 
   // Selections
+  const [selectedCity, setSelectedCity] = useState("")
+  const [selectedHospital, setSelectedHospital] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState(null)
-  const [consultType, setConsultType] = useState("") // 'inperson', 'video', 'whatsapp'
+  const [consultType, setConsultType] = useState("") 
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
+  
+  // Patient Details
+  const [patientData, setPatientData] = useState({
+    name: user.name || "",
+    phone: user.phone || "",
+    age: "",
+    gender: "male"
+  })
+
   const [validationError, setValidationError] = useState("")
 
+  // PERSISTENCE LOGIC
   useEffect(() => {
-    if (!token) {
-      navigate("/login", { state: { from: "/appointment" } })
+    const saved = localStorage.getItem("pendingBooking")
+    if (saved) {
+      const data = JSON.parse(saved)
+      if (data.fromAI) setFromAI(true)
+      if (data.selectedCity) setSelectedCity(data.selectedCity)
+      if (data.selectedHospital) setSelectedHospital(data.selectedHospital)
+      if (data.selectedDoctor) setSelectedDoctor(data.selectedDoctor)
+      if (data.consultType) setConsultType(data.consultType)
+      if (data.date) setDate(data.date)
+      if (data.time) setTime(data.time)
+      if (data.patientData) setPatientData(data.patientData)
+      if (data.currentStep) setCurrentStep(data.currentStep)
     }
-  }, [token, navigate])
+  }, [])
 
   useEffect(() => {
-    if (location.state?.doctor) {
-      setSelectedDoctor(location.state.doctor)
-    } else {
-      // If no doctor passed, go back or show selection (user said skip doctor selection if from AI)
-      // For now, let's assume they MUST come from AI or I'll redirect them to Home
-      if (currentStep === 1 && !selectedDoctor) {
-        navigate("/")
-      }
+    const bookingContext = {
+      fromAI,
+      selectedCity,
+      selectedHospital,
+      selectedDoctor,
+      consultType,
+      date,
+      time,
+      patientData,
+      currentStep
     }
-  }, [location.state, navigate])
+    localStorage.setItem("pendingBooking", JSON.stringify(bookingContext))
+  }, [fromAI, selectedCity, selectedHospital, selectedDoctor, consultType, date, time, patientData, currentStep])
+
+  // We now allow unauthenticated users to browse selection steps.
+  // Auth check will happen right before final booking.
+
+  const fetchCities = async () => {
+    try {
+      const res = await axios.get(`${API}/hospitals/cities`)
+      setCities(res.data)
+    } catch (err) { console.error("Error fetching cities", err) }
+  }
+
+  const fetchHospitals = async (page = 1) => {
+    if (!selectedCity) return
+    setHospitalsLoading(true)
+    try {
+      const res = await axios.get(`${API}/hospitals?city=${selectedCity}&page=${page}&limit=10`)
+      setHospitals(res.data.hospitals)
+      setHPages(res.data.pages)
+      setHPage(page)
+    } catch (err) { console.error("Error fetching hospitals", err) }
+    finally { setHospitalsLoading(false) }
+  }
+
+  const fetchDoctors = async (page = 1) => {
+    if (!selectedHospital) return
+    setDoctorsLoading(true)
+    try {
+      const res = await axios.get(`${API}/doctors?hospital=${selectedHospital}&page=${page}&limit=10`)
+      setDoctorsList(res.data.doctors)
+      setDPages(res.data.pages)
+      setDPage(page)
+    } catch (err) { console.error("Error fetching doctors", err) }
+    finally { setDoctorsLoading(false) }
+  }
+
+  useEffect(() => {
+    if (location.state?.fromAI) {
+      setFromAI(true)
+      setSelectedDoctor(location.state.doctor)
+      setSelectedCity(location.state.city)
+      setSelectedHospital(location.state.hospital)
+      setCurrentStep(3) 
+    } else {
+      fetchCities()
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    if (selectedCity && !fromAI) {
+      fetchHospitals(1)
+    }
+  }, [selectedCity, fromAI])
+
+  useEffect(() => {
+    if (selectedHospital && !fromAI) {
+      fetchDoctors(1)
+    }
+  }, [selectedHospital, fromAI])
 
   const handleNext = () => {
     setValidationError("")
+    
+    // Auth Check before final step (Step 5)
+    if (currentStep === 4 && !token) {
+      alert("Please login first to continue booking")
+      localStorage.setItem("redirectAfterLogin", "/appointment")
+      navigate("/login")
+      return
+    }
+
     if (currentStep === 1) {
-      if (!consultType) return setValidationError("Please select a mode of visit")
+      if (!selectedCity) return setValidationError("Please select a city")
+      if (!selectedHospital) return setValidationError("Please select a hospital")
       setCurrentStep(2)
     } else if (currentStep === 2) {
+      if (!selectedDoctor) return setValidationError("Please select a doctor")
+      setCurrentStep(3)
+    } else if (currentStep === 3) {
       if (!date) return setValidationError("Please select a date")
       if (!time) return setValidationError("Please choose a time slot")
-      setCurrentStep(3)
+      if (!consultType) return setValidationError("Please select a mode of visit")
+      setCurrentStep(4)
+    } else if (currentStep === 4) {
+      if (!patientData.name || !patientData.phone) return setValidationError("Please fill all patient details")
+      setCurrentStep(5)
     }
   }
 
   const handleBack = () => {
+    if (fromAI && currentStep === 3) return // Cannot go back beyond AI selection
     if (currentStep > 1) setCurrentStep(currentStep - 1)
   }
 
   const handleBooking = async () => {
+    if (!token) {
+      setValidationError("Please login to complete your booking.")
+      // Store intended path for redirect after login
+      localStorage.setItem("redirectAfterLogin", "/appointment")
+      
+      setTimeout(() => {
+        navigate("/login", { state: { from: "/appointment" } })
+      }, 1500)
+      return
+    }
+
     setLoading(true)
     setError("")
     try {
       await axios.post(
         API + "/appointments",
         {
-          patientName: user.name,
+          patientName: patientData.name,
+          patientPhone: patientData.phone,
+          patientAge: patientData.age,
+          patientGender: patientData.gender,
           city: selectedDoctor.city,
           hospital: selectedDoctor.hospital,
           speciality: selectedDoctor.speciality,
@@ -98,6 +227,7 @@ export default function Appointment() {
         },
         { headers: { Authorization: "Bearer " + token } }
       )
+      localStorage.removeItem("pendingBooking")
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.message || "Booking failed. Please try again.")
@@ -169,14 +299,20 @@ export default function Appointment() {
             <div className="absolute top-[52px] left-0 w-full h-1 bg-gray-200 rounded-full z-0"></div>
             <div 
               className="absolute top-[52px] left-0 h-1 bg-blue-600 rounded-full z-0 transition-all duration-700"
-              style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+              style={{ width: `${((currentStep - (fromAI ? 3 : 1)) / (fromAI ? 2 : 4)) * 100}%` }}
             ></div>
             <div className="relative z-10 flex justify-between">
-              {[
-                { step: 1, icon: Activity, label: "Mode" },
-                { step: 2, icon: Clock, label: "Schedule" },
-                { step: 3, icon: CreditCard, label: "Review" }
-              ].map((s) => (
+              {(fromAI ? [
+                { step: 3, icon: Clock, label: "Schedule" },
+                { step: 4, icon: User, label: "Patient" },
+                { step: 5, icon: CreditCard, label: "Review" }
+              ] : [
+                { step: 1, icon: MapPin, label: "Facility" },
+                { step: 2, icon: Stethoscope, label: "Doctor" },
+                { step: 3, icon: Clock, label: "Schedule" },
+                { step: 4, icon: User, label: "Patient" },
+                { step: 5, icon: CreditCard, label: "Review" }
+              ]).map((s) => (
                 <div key={s.step} className="flex flex-col items-center gap-3">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${
                     currentStep >= s.step ? "bg-blue-600 border-white text-white shadow-xl shadow-blue-100" : "bg-white border-gray-100 text-gray-300"
@@ -200,67 +336,182 @@ export default function Appointment() {
               
               <div className="p-10 flex-1 flex flex-col">
                 
-                {/* STEP 1: MODE OF VISIT */}
-                {currentStep === 1 && (
-                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
-                    <div className="space-y-2">
-                      <h2 className="text-2xl font-black text-gray-900">How would you like to consult?</h2>
-                      <p className="text-gray-400 font-medium">Select your preferred mode of consultation with the doctor.</p>
+                {/* AI RECOMMENDED BANNER */}
+                {fromAI && (
+                  <div className="mb-8 bg-purple-50 border border-purple-100 p-4 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                      <Sparkles size={20} />
                     </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      {[
-                        { id: "inperson", icon: Building2, label: "Hospital Visit", desc: "Physical checkup at clinic" },
-                        { id: "video", icon: Video, label: "Video Call", desc: "Consult from home via video" },
-                        { id: "whatsapp", icon: PhoneCall, label: "Voice/Chat", desc: "Quick consult via phone" }
-                      ].map(m => (
-                        <button 
-                          key={m.id}
-                          onClick={() => { setConsultType(m.id); setValidationError(""); }}
-                          className={`flex flex-col items-center text-center p-8 rounded-[32px] border-4 transition-all group ${
-                            consultType === m.id ? "bg-blue-600 border-blue-600 text-white shadow-2xl shadow-blue-100" : "bg-gray-50 border-transparent hover:border-blue-200"
-                          }`}
-                        >
-                          <div className={`w-16 h-16 rounded-3xl flex items-center justify-center mb-6 transition-all ${
-                            consultType === m.id ? "bg-white/20 text-white" : "bg-white text-blue-600 shadow-sm group-hover:scale-110"
-                          }`}>
-                            <m.icon size={32} />
-                          </div>
-                          <span className="text-sm font-black uppercase tracking-widest mb-2">{m.label}</span>
-                          <span className={`text-[10px] font-medium leading-relaxed ${consultType === m.id ? "text-blue-100" : "text-gray-400"}`}>
-                            {m.desc}
-                          </span>
-                        </button>
-                      ))}
+                    <div>
+                      <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest">AI Context Enabled</p>
+                      <p className="text-xs font-bold text-gray-700">Booking with AI Recommended Doctor</p>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 2: SCHEDULE */}
+                {/* STEP 1: CITY & HOSPITAL SELECTION */}
+                {currentStep === 1 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <div className="space-y-1">
+                          <h2 className="text-2xl font-black text-gray-900">Select City</h2>
+                          <p className="text-xs font-medium text-gray-400">Where are you looking for healthcare?</p>
+                        </div>
+                        <select 
+                          value={selectedCity}
+                          onChange={(e) => { setSelectedCity(e.target.value); setSelectedHospital(""); setSelectedDoctor(null); }}
+                          className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-2xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="">Choose City</option>
+                          {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {selectedCity && (
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Hospitals in {selectedCity}</h3>
+                          {hPages > 1 && (
+                            <div className="flex gap-2">
+                              <button disabled={hPage === 1} onClick={() => fetchHospitals(hPage - 1)} className="w-8 h-8 rounded-lg border border-gray-100 flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50"><ArrowLeft size={14} /></button>
+                              <button disabled={hPage === hPages} onClick={() => fetchHospitals(hPage + 1)} className="w-8 h-8 rounded-lg border border-gray-100 flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50"><ChevronRight size={14} /></button>
+                            </div>
+                          )}
+                        </div>
+
+                        {hospitalsLoading ? (
+                          <div className="py-20 flex flex-col items-center justify-center gap-4">
+                            <Loader2 className="animate-spin text-blue-600" size={32} />
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Hospitals...</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {hospitals.map(h => (
+                              <HospitalCard 
+                                key={h._id}
+                                hospital={h}
+                                onSelect={(hospital) => { setSelectedHospital(hospital.name); setCurrentStep(2); }}
+                                isSelected={selectedHospital === h.name}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* STEP 2: DOCTOR SELECTION */}
                 {currentStep === 2 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-2">
+                        <h2 className="text-2xl font-black text-gray-900">Choose your Specialist</h2>
+                        <p className="text-gray-400 font-medium">Available doctors at {selectedHospital}.</p>
+                      </div>
+                      {dPages > 1 && (
+                        <div className="flex gap-2">
+                          <button disabled={dPage === 1} onClick={() => fetchDoctors(dPage - 1)} className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition-all"><ArrowLeft size={18} /></button>
+                          <button disabled={dPage === dPages} onClick={() => fetchDoctors(dPage + 1)} className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition-all"><ChevronRight size={18} /></button>
+                        </div>
+                      )}
+                    </div>
+
+                    {doctorsLoading ? (
+                      <div className="py-20 flex flex-col items-center justify-center gap-4">
+                        <Loader2 className="animate-spin text-blue-600" size={32} />
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Specialists...</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {doctorsList.length > 0 ? doctorsList.map(doc => (
+                          <button 
+                            key={doc._id}
+                            onClick={() => { setSelectedDoctor(doc); setCurrentStep(3); }}
+                            className={`flex items-center gap-4 p-5 rounded-3xl border-2 transition-all text-left group ${
+                              selectedDoctor?._id === doc._id ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                            }`}
+                          >
+                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-50 group-hover:scale-105 transition-transform">
+                              {doc.image ? (
+                                <img src={doc.image} alt={doc.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center font-black bg-blue-50 text-blue-600">
+                                  {doc.name[0]}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-black text-sm mb-0.5">{doc.name}</p>
+                              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-blue-400" : "text-blue-600"}`}>{doc.speciality}</p>
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-gray-400" : "text-gray-400"}`}>₹{doc.fee}</span>
+                                <span className="flex items-center gap-1 text-[9px] text-orange-400 font-black"><Star size={10} fill="currentColor" /> {doc.rating || "4.9"}</span>
+                              </div>
+                            </div>
+                          </button>
+                        )) : (
+                          <div className="col-span-2 py-20 text-center bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100">
+                            <Stethoscope className="mx-auto text-gray-300 mb-4" size={48} />
+                            <p className="text-gray-400 font-bold">No specialists found at this location.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* STEP 3: SCHEDULE & MODE */}
+                {currentStep === 3 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-black text-gray-900">When are you available?</h2>
-                      <p className="text-gray-400 font-medium">Choose a convenient date and time slot for your appointment.</p>
+                      <h2 className="text-2xl font-black text-gray-900">Schedule Your Visit</h2>
+                      <p className="text-gray-400 font-medium">Choose your preferred date, time and consultation mode.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Date</label>
-                        <div className="relative group">
-                          <input 
-                            type="date"
-                            min={todayStr()}
-                            value={date}
-                            onChange={(e) => { setDate(e.target.value); setValidationError(""); }}
-                            className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
-                          />
-                          <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-blue-600" size={20} />
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Date</label>
+                          <div className="relative group">
+                            <input 
+                              type="date"
+                              min={todayStr()}
+                              value={date}
+                              onChange={(e) => { setDate(e.target.value); setValidationError(""); }}
+                              className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                            />
+                            <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-blue-600" size={20} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Consultation Mode</label>
+                          <div className="grid grid-cols-1 gap-2">
+                            {[
+                              { id: "inperson", icon: Building2, label: "In-Person Visit" },
+                              { id: "video", icon: Video, label: "Video Consult" },
+                              { id: "whatsapp", icon: PhoneCall, label: "Audio Consult" }
+                            ].map(m => (
+                              <button 
+                                key={m.id}
+                                onClick={() => setConsultType(m.id)}
+                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
+                                  consultType === m.id ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-blue-200"
+                                }`}
+                              >
+                                <m.icon size={18} />
+                                <span className="text-xs font-bold uppercase tracking-widest">{m.label}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-4">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Time Slot</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Time Slot</label>
                         <div className="grid grid-cols-2 gap-3">
                           {SLOTS.map(s => (
                             <button 
@@ -279,8 +530,67 @@ export default function Appointment() {
                   </div>
                 )}
 
-                {/* STEP 3: REVIEW & PAYMENT */}
-                {currentStep === 3 && (
+                {/* STEP 4: PATIENT DETAILS */}
+                {currentStep === 4 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
+                    <div className="space-y-2">
+                      <h2 className="text-2xl font-black text-gray-900">Patient Information</h2>
+                      <p className="text-gray-400 font-medium">Please provide the details of the person visiting the doctor.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                        <input 
+                          type="text"
+                          value={patientData.name}
+                          onChange={(e) => setPatientData({...patientData, name: e.target.value})}
+                          placeholder="Enter patient's name"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                        <input 
+                          type="tel"
+                          value={patientData.phone}
+                          onChange={(e) => setPatientData({...patientData, phone: e.target.value})}
+                          placeholder="Contact number"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Age</label>
+                        <input 
+                          type="number"
+                          value={patientData.age}
+                          onChange={(e) => setPatientData({...patientData, age: e.target.value})}
+                          placeholder="Years"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        />
+                      </div>
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gender</label>
+                        <div className="flex gap-4">
+                          {["male", "female", "other"].map(g => (
+                            <button 
+                              key={g}
+                              onClick={() => setPatientData({...patientData, gender: g})}
+                              className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
+                                patientData.gender === g ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-100 text-gray-400 hover:border-blue-200"
+                              }`}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 5: REVIEW & PAYMENT */}
+                {currentStep === 5 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 flex-1">
                     <div className="space-y-2">
                       <h2 className="text-2xl font-black text-gray-900">Final Review</h2>
@@ -295,7 +605,7 @@ export default function Appointment() {
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Patient</span>
                         </div>
-                        <span className="font-bold text-gray-900">{user.name}</span>
+                        <span className="font-bold text-gray-900">{patientData.name || "Guest User"}</span>
                       </div>
                       <div className="flex justify-between items-center py-4 border-b border-gray-200">
                         <div className="flex items-center gap-4">
@@ -328,7 +638,7 @@ export default function Appointment() {
 
                 {/* ACTION BUTTONS */}
                 <div className="pt-10 mt-auto flex gap-4">
-                  {currentStep > 1 && (
+                  {currentStep > (fromAI ? 3 : 1) && (
                     <button 
                       onClick={handleBack}
                       className="flex-1 py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] border-2 border-gray-100 text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all flex items-center justify-center gap-2"
@@ -336,7 +646,7 @@ export default function Appointment() {
                       <ArrowLeft size={16} /> Back
                     </button>
                   )}
-                  {currentStep < 3 ? (
+                  {currentStep < 5 ? (
                     <button 
                       onClick={handleNext}
                       className="flex-[2] bg-blue-600 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 flex items-center justify-center gap-2"
@@ -399,8 +709,12 @@ export default function Appointment() {
 
               <div className="space-y-4 pt-4 border-t border-gray-50">
                 <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-gray-400">City</span>
+                  <span className="text-xs font-black text-gray-900">{selectedCity || "Select City"}</span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-400">Hospital</span>
-                  <span className="text-xs font-black text-gray-900 text-right">{selectedDoctor?.hospital || "Select Facility"}</span>
+                  <span className="text-xs font-black text-gray-900 text-right">{selectedHospital || "Select Facility"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-400">Consult Fee</span>

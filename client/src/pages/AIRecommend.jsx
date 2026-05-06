@@ -338,7 +338,16 @@ export default function AIRecommend() {
                         </div>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">{doc.hospital}</p>
                         <button 
-                          onClick={() => navigate("/appointment", { state: { doctor: doc } })}
+                          onClick={() => navigate("/appointment", { 
+                            state: { 
+                              fromAI: true,
+                              doctor: doc,
+                              doctorId: doc._id,
+                              doctorName: doc.name,
+                              city: doc.city,
+                              hospital: doc.hospital
+                            } 
+                          })}
                           className="w-full py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all"
                         >
                           Book Appointment

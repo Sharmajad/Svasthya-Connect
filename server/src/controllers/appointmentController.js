@@ -3,7 +3,8 @@ import Appointment from "../models/Appointment.js"
 export const bookAppointment = async (req, res) => {
   try {
     const {
-      patientName, city, hospital,
+      patientName, patientPhone, patientAge, patientGender,
+      city, hospital, doctorName,
       speciality, date, time,
       consultType, problem, isEmergency, fee
     } = req.body
@@ -13,18 +14,22 @@ export const bookAppointment = async (req, res) => {
     }
 
     const appointment = await Appointment.create({
-      patientId:   req.user.id,
-      patientName: patientName || req.user.name,
+      patientId:     req.user.id,
+      patientName:   patientName || req.user.name,
+      patientPhone:  patientPhone,
+      patientAge:    patientAge,
+      patientGender: patientGender,
       city,
       hospital,
+      doctorName,
       speciality,
       date,
       time,
-      consultType:  consultType || "inperson",
-      problem:      problem || "",
-      isEmergency:  isEmergency || false,
-      fee:          fee || 0,
-      status:       "pending",
+      consultType:   consultType || "inperson",
+      problem:       problem || "",
+      isEmergency:   isEmergency || false,
+      fee:           fee || 0,
+      status:        "pending",
     })
 
     res.status(201).json({

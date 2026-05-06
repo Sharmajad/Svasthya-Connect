@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import Footer from "../components/Footer"
+import { isAuthenticated, setRedirectPath } from "../utils/auth"
 
 export default function Home() {
   return (
@@ -99,7 +100,14 @@ function Hero() {
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-200 px-4 py-3 rounded-xl flex-1 text-gray-700 focus:outline-none focus:border-teal-500 bg-gray-50"
           />
-          <button onClick={() => navigate("/appointment")}
+          <button onClick={() => {
+            if (isAuthenticated()) {
+              navigate("/appointment")
+            } else {
+              setRedirectPath("/appointment")
+              navigate("/login", { state: { message: "Please login to continue booking" } })
+            }
+          }}
             className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 rounded-xl font-semibold transition shadow-lg hover:shadow-teal-300">
             Search
           </button>
@@ -108,7 +116,14 @@ function Hero() {
         {/* QUICK TAGS */}
         <div className="slide-up-delay-2 flex gap-2 justify-center mt-5 flex-wrap">
           {["Cardiologist","Gynecologist","Pediatrician","Dermatologist","Neurologist","Orthopedist"].map((tag) => (
-            <span key={tag} onClick={() => navigate("/appointment")}
+            <span key={tag} onClick={() => {
+              if (isAuthenticated()) {
+                navigate("/appointment")
+              } else {
+                setRedirectPath("/appointment")
+                navigate("/login", { state: { message: "Please login to continue booking" } })
+              }
+            }}
               className="bg-white bg-opacity-20 hover:bg-opacity-30 cursor-pointer text-white text-sm px-4 py-1.5 rounded-full transition backdrop-blur-sm border border-white border-opacity-30">
               {tag}
             </span>
@@ -165,7 +180,14 @@ function Features() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
           {features.map((f) => (
-            <div key={f.title} onClick={() => navigate(f.path)}
+            <div key={f.title} onClick={() => {
+              if (f.path === "/appointment" && !isAuthenticated()) {
+                setRedirectPath("/appointment")
+                navigate("/login", { state: { message: "Please login to continue booking" } })
+              } else {
+                navigate(f.path)
+              }
+            }}
               className="card-hover bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer border border-gray-100">
               <div className={"h-2 bg-gradient-to-r " + f.color} />
               <div className="p-5">
@@ -238,7 +260,14 @@ function Specialities() {
         </div>
         <div className="flex gap-5 overflow-x-auto pb-4 snap-x">
           {specs.map((s) => (
-            <div key={s.name} onClick={() => navigate("/appointment")}
+            <div key={s.name} onClick={() => {
+              if (isAuthenticated()) {
+                navigate("/appointment")
+              } else {
+                setRedirectPath("/appointment")
+                navigate("/login", { state: { message: "Please login to continue booking" } })
+              }
+            }}
               className={"card-hover min-w-[200px] rounded-2xl shadow-md cursor-pointer overflow-hidden snap-start border border-gray-100 bg-gradient-to-b " + s.color}>
               <div className="h-32 flex items-center justify-center text-6xl">
                 {s.icon}

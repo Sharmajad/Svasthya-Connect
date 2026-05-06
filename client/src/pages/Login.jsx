@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import axios from "axios"
+import { getRedirectPath, clearRedirectPath } from "../utils/auth"
 
 // ── helpers ────────────────────────────────────────────────────────────────
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -64,8 +65,16 @@ export default function Login() {
       // Also save user name so Dashboard can show it
       localStorage.setItem("user", JSON.stringify(res.data.user))
 
-      // Go to intended page or dashboard after successful login
-      navigate(from)
+      // Check for redirect path
+      const redirectPath = getRedirectPath()
+      
+      if (redirectPath) {
+        clearRedirectPath()
+        navigate(redirectPath)
+      } else {
+        // Go to intended page or dashboard after successful login
+        navigate(from)
+      }
 
     } catch (err) {
       // Show error message if login fails
@@ -84,6 +93,14 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-teal-600">🩺 Svasthya Connect</h1>
           <p className="text-gray-500 mt-1">Login to your account</p>
         </div>
+
+        {/* REDIRECT MESSAGE */}
+        {location.state?.message && (
+          <div className="bg-blue-50 border border-blue-300 text-blue-600 px-4 py-3 rounded-lg mb-5 text-sm flex items-center gap-2">
+            <span className="animate-pulse text-lg">ℹ️</span>
+            {location.state.message}
+          </div>
+        )}
 
         {/* SERVER ERROR MESSAGE */}
         {error && (

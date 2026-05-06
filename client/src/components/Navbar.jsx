@@ -12,16 +12,16 @@ import {
   LogOut, 
   User, 
   LayoutDashboard,
-  ChevronDown,
   Sparkles
 } from "lucide-react"
+import { isAuthenticated, setRedirectPath } from "../utils/auth"
 
 function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const token = localStorage.getItem("token")
-  const user  = JSON.parse(localStorage.getItem("user") || "{}")
   const [menuOpen, setMenuOpen] = useState(false)
+  const user  = JSON.parse(localStorage.getItem("user") || "{}")
+  const isAuth = isAuthenticated()
 
   const handleLogout = () => {
     localStorage.removeItem("token"); localStorage.removeItem("user")
@@ -61,6 +61,13 @@ function Navbar() {
               <Link 
                 key={l.to} 
                 to={l.to} 
+                onClick={(e) => {
+                  if (l.to === "/appointment" && !isAuthenticated()) {
+                    e.preventDefault()
+                    setRedirectPath("/appointment")
+                    navigate("/login", { state: { message: "Please login to continue booking" } })
+                  }
+                }}
                 className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all hover:text-teal-600 ${
                   isActive(l.to) ? "text-teal-600" : "text-gray-400"
                 } ${l.className || ""}`}
@@ -73,7 +80,7 @@ function Navbar() {
 
           {/* DESKTOP ACTIONS */}
           <div className="hidden lg:flex items-center gap-6">
-            {token ? (
+            {isAuth ? (
               <div className="flex items-center gap-4 pl-6 border-l border-gray-100">
                 <Link to="/dashboard" className="flex items-center gap-2 group">
                   <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all border border-gray-100">
@@ -100,7 +107,7 @@ function Navbar() {
 
           {/* MOBILE TOGGLE */}
           <div className="flex lg:hidden items-center gap-4">
-            {token && (
+            {isAuth && (
               <Link to="/dashboard" className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
                 <User size={18} />
               </Link>
@@ -121,7 +128,14 @@ function Navbar() {
               <Link 
                 key={l.to} 
                 to={l.to} 
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => {
+                  setMenuOpen(false)
+                  if (l.to === "/appointment" && !isAuthenticated()) {
+                    e.preventDefault()
+                    setRedirectPath("/appointment")
+                    navigate("/login", { state: { message: "Please login to continue booking" } })
+                  }
+                }}
                 className={`flex flex-col items-center gap-3 p-6 rounded-3xl border border-gray-50 text-[10px] font-black uppercase tracking-widest transition-all ${
                   isActive(l.to) ? "bg-teal-50 text-teal-600 border-teal-100" : "bg-gray-50 text-gray-400"
                 } ${l.className || ""}`}
@@ -133,7 +147,7 @@ function Navbar() {
           </div>
           
           <div className="pt-6 border-t border-gray-100">
-            {token ? (
+            {isAuth ? (
               <div className="flex flex-col gap-3">
                 <Link 
                   to="/dashboard" 

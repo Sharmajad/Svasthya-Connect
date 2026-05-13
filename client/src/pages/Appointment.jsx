@@ -102,6 +102,12 @@ export default function Appointment() {
     localStorage.setItem("pendingBooking", JSON.stringify(bookingContext))
   }, [fromAI, selectedCity, selectedHospital, selectedDoctor, consultType, date, time, patientData, currentStep])
 
+  useEffect(() => {
+    if (fromAI && currentStep < 3) {
+      setCurrentStep(3)
+    }
+  }, [fromAI])
+
   // We now allow unauthenticated users to browse selection steps.
   // Auth check will happen right before final booking.
 
@@ -116,11 +122,16 @@ export default function Appointment() {
     if (!selectedCity) return
     setHospitalsLoading(true)
     try {
+      console.log("Fetching hospitals for city:", selectedCity)
       const res = await axios.get(`${API}/hospitals?city=${selectedCity}&page=${page}&limit=10`)
-      setHospitals(res.data.hospitals)
-      setHPages(res.data.pages)
+      console.log("Hospitals received:", res.data.hospitals)
+      setHospitals(res.data.hospitals || [])
+      setHPages(res.data.pages || 1)
       setHPage(page)
-    } catch (err) { console.error("Error fetching hospitals", err) }
+    } catch (err) { 
+      console.error("Error fetching hospitals", err)
+      setHospitals([])
+    }
     finally { setHospitalsLoading(false) }
   }
 
@@ -137,28 +148,27 @@ export default function Appointment() {
   }
 
   useEffect(() => {
+    fetchCities()
     if (location.state?.fromAI) {
       setFromAI(true)
       setSelectedDoctor(location.state.doctor)
       setSelectedCity(location.state.city)
       setSelectedHospital(location.state.hospital)
       setCurrentStep(3)
-    } else {
-      fetchCities()
     }
   }, [location.state])
 
   useEffect(() => {
-    if (selectedCity && !fromAI) {
+    if (selectedCity) {
       fetchHospitals(1)
     }
-  }, [selectedCity, fromAI])
+  }, [selectedCity])
 
   useEffect(() => {
-    if (selectedHospital && !fromAI) {
+    if (selectedHospital) {
       fetchDoctors(1)
     }
-  }, [selectedHospital, fromAI])
+  }, [selectedHospital])
 
   const handleNext = () => {
     setValidationError("")
@@ -257,7 +267,7 @@ export default function Appointment() {
               </div>
               <div>
                 <p className="font-black text-gray-900">{selectedDoctor?.name}</p>
-                <p className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">{selectedDoctor?.speciality}</p>
+                <p className="text-teal-600 text-[10px] font-black uppercase tracking-widest">{selectedDoctor?.speciality}</p>
               </div>
             </div>
             <div className="pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
@@ -290,7 +300,7 @@ export default function Appointment() {
         {/* STEPPER HEADER */}
         <div className="max-w-3xl mx-auto mb-16 text-center space-y-6">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-gray-100 shadow-sm">
-            <ShieldCheck size={16} className="text-indigo-600" />
+            <ShieldCheck size={16} className="text-teal-600" />
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Secured Booking Flow</span>
           </div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">Complete Your Booking</h1>
@@ -298,7 +308,7 @@ export default function Appointment() {
           <div className="relative pt-8">
             <div className="absolute top-[52px] left-0 w-full h-1 bg-gray-200 rounded-full z-0"></div>
             <div
-              className="absolute top-[52px] left-0 h-1 bg-indigo-600 rounded-full z-0 transition-all duration-700"
+              className="absolute top-[52px] left-0 h-1 bg-teal-600 rounded-full z-0 transition-all duration-700"
               style={{ width: `${((currentStep - (fromAI ? 3 : 1)) / (fromAI ? 2 : 4)) * 100}%` }}
             ></div>
             <div className="relative z-10 flex justify-between">
@@ -314,11 +324,11 @@ export default function Appointment() {
                 { step: 5, icon: CreditCard, label: "Review" }
               ]).map((s) => (
                 <div key={s.step} className="flex flex-col items-center gap-3">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${currentStep >= s.step ? "bg-indigo-600 border-white text-white shadow-xl shadow-indigo-100" : "bg-white border-gray-100 text-gray-300"
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${currentStep >= s.step ? "bg-teal-600 border-white text-white shadow-xl shadow-teal-100" : "bg-white border-gray-100 text-gray-300"
                     }`}>
                     {currentStep > s.step ? <CheckCircle2 size={20} /> : <s.icon size={20} />}
                   </div>
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${currentStep >= s.step ? "text-indigo-600" : "text-gray-400"}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${currentStep >= s.step ? "text-teal-600" : "text-gray-400"}`}>
                     {s.label}
                   </span>
                 </div>
@@ -360,7 +370,7 @@ export default function Appointment() {
                         <select
                           value={selectedCity}
                           onChange={(e) => { setSelectedCity(e.target.value); setSelectedHospital(""); setSelectedDoctor(null); }}
-                          className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-2xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                          className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-2xl font-bold text-gray-700 focus:outline-none focus:border-teal-600 focus:bg-white transition-all appearance-none cursor-pointer"
                         >
                           <option value="">Choose City</option>
                           {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -382,10 +392,10 @@ export default function Appointment() {
 
                         {hospitalsLoading ? (
                           <div className="py-20 flex flex-col items-center justify-center gap-4">
-                            <Loader2 className="animate-spin text-indigo-600" size={32} />
+                            <Loader2 className="animate-spin text-teal-600" size={32} />
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Hospitals...</p>
                           </div>
-                        ) : (
+                         ) : hospitals.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {hospitals.map(h => (
                               <HospitalCard
@@ -395,6 +405,11 @@ export default function Appointment() {
                                 isSelected={selectedHospital === h.name}
                               />
                             ))}
+                          </div>
+                        ) : (
+                          <div className="py-20 text-center bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-100">
+                            <Building2 className="mx-auto text-gray-300 mb-4" size={48} />
+                            <p className="text-gray-400 font-bold">No hospitals found in this city.</p>
                           </div>
                         )}
                       </div>
@@ -420,7 +435,7 @@ export default function Appointment() {
 
                     {doctorsLoading ? (
                       <div className="py-20 flex flex-col items-center justify-center gap-4">
-                        <Loader2 className="animate-spin text-indigo-600" size={32} />
+                        <Loader2 className="animate-spin text-teal-600" size={32} />
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Specialists...</p>
                       </div>
                     ) : (
@@ -429,21 +444,15 @@ export default function Appointment() {
                           <button
                             key={doc._id}
                             onClick={() => { setSelectedDoctor(doc); setCurrentStep(3); }}
-                            className={`flex items-center gap-4 p-5 rounded-3xl border-2 transition-all text-left group ${selectedDoctor?._id === doc._id ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white border-gray-100 text-gray-700 hover:border-blue-200"
+                            className={`flex items-center gap-4 p-5 rounded-3xl border-2 transition-all text-left group ${selectedDoctor?._id === doc._id ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white border-gray-100 text-gray-700 hover:border-teal-200"
                               }`}
                           >
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-50 group-hover:scale-105 transition-transform">
-                              {doc.image ? (
-                                <img src={doc.image} alt={doc.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center font-black bg-indigo-50 text-indigo-600">
-                                  {doc.name[0]}
-                                </div>
-                              )}
+                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-teal-50 flex items-center justify-center text-teal-600 font-black text-xl border border-teal-100 group-hover:scale-105 transition-transform">
+                              {doc.name[0]}
                             </div>
                             <div className="flex-1">
                               <p className="font-black text-sm mb-0.5">{doc.name}</p>
-                              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-indigo-400" : "text-indigo-600"}`}>{doc.speciality}</p>
+                              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-teal-400" : "text-teal-600"}`}>{doc.speciality}</p>
                               <div className="flex items-center gap-3 mt-2">
                                 <span className={`text-[9px] font-black uppercase tracking-widest ${selectedDoctor?._id === doc._id ? "text-gray-400" : "text-gray-400"}`}>₹{doc.fee}</span>
                                 <span className="flex items-center gap-1 text-[9px] text-orange-400 font-black"><Star size={10} fill="currentColor" /> {doc.rating || "4.9"}</span>
@@ -479,9 +488,9 @@ export default function Appointment() {
                               min={todayStr()}
                               value={date}
                               onChange={(e) => { setDate(e.target.value); setValidationError(""); }}
-                              className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                              className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-teal-600 focus:bg-white transition-all appearance-none cursor-pointer"
                             />
-                            <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-indigo-600" size={20} />
+                            <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-focus-within:text-teal-600" size={20} />
                           </div>
                         </div>
 
@@ -496,7 +505,7 @@ export default function Appointment() {
                               <button
                                 key={m.id}
                                 onClick={() => setConsultType(m.id)}
-                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${consultType === m.id ? "bg-indigo-600 border-indigo-600 text-white shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-blue-200"
+                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${consultType === m.id ? "bg-teal-600 border-teal-600 text-white shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-teal-200"
                                   }`}
                               >
                                 <m.icon size={18} />
@@ -514,7 +523,7 @@ export default function Appointment() {
                             <button
                               key={s}
                               onClick={() => { setTime(s); setValidationError(""); }}
-                              className={`py-4 rounded-2xl text-[11px] font-black uppercase tracking-tight border-2 transition-all ${time === s ? "bg-gray-900 text-white border-gray-900 shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-indigo-400"
+                              className={`py-4 rounded-2xl text-[11px] font-black uppercase tracking-tight border-2 transition-all ${time === s ? "bg-gray-900 text-white border-gray-900 shadow-lg" : "bg-white border-gray-100 text-gray-500 hover:border-teal-400"
                                 }`}
                             >
                               {s}
@@ -542,7 +551,7 @@ export default function Appointment() {
                           value={patientData.name}
                           onChange={(e) => setPatientData({ ...patientData, name: e.target.value })}
                           placeholder="Enter patient's name"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-teal-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
@@ -552,7 +561,7 @@ export default function Appointment() {
                           value={patientData.phone}
                           onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
                           placeholder="Contact number"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-teal-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
@@ -562,7 +571,7 @@ export default function Appointment() {
                           value={patientData.age}
                           onChange={(e) => setPatientData({ ...patientData, age: e.target.value })}
                           placeholder="Years"
-                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all"
+                          className="w-full bg-gray-50 border-2 border-transparent px-6 py-5 rounded-3xl font-bold text-gray-700 focus:outline-none focus:border-teal-600 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-4">
@@ -572,7 +581,7 @@ export default function Appointment() {
                             <button
                               key={g}
                               onClick={() => setPatientData({ ...patientData, gender: g })}
-                              className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${patientData.gender === g ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-100 text-gray-400 hover:border-blue-200"
+                              className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${patientData.gender === g ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-100 text-gray-400 hover:border-teal-200"
                                 }`}
                             >
                               {g}
@@ -595,7 +604,7 @@ export default function Appointment() {
                     <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 space-y-6">
                       <div className="flex justify-between items-center py-4 border-b border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-teal-600 shadow-sm">
                             <User size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Patient</span>
@@ -604,7 +613,7 @@ export default function Appointment() {
                       </div>
                       <div className="flex justify-between items-center py-4 border-b border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-teal-600 shadow-sm">
                             <MapPin size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Consult Mode</span>
@@ -613,7 +622,7 @@ export default function Appointment() {
                       </div>
                       <div className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-teal-600 shadow-sm">
                             <CalendarCheck2 size={20} />
                           </div>
                           <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Date & Time</span>
@@ -622,9 +631,9 @@ export default function Appointment() {
                       </div>
                     </div>
 
-                    <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-3xl flex items-center gap-4">
-                      <Lock className="text-indigo-600 shrink-0" size={24} />
-                      <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest leading-relaxed">
+                    <div className="bg-teal-50 border border-teal-100 p-6 rounded-3xl flex items-center gap-4">
+                      <Lock className="text-teal-600 shrink-0" size={24} />
+                      <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest leading-relaxed">
                         Your payment is secured with end-to-end encryption and verified by top medical associations.
                       </p>
                     </div>
@@ -644,7 +653,7 @@ export default function Appointment() {
                   {currentStep < 5 ? (
                     <button
                       onClick={handleNext}
-                      className="flex-[2] bg-indigo-600 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-100 flex items-center justify-center gap-2"
+                      className="flex-[2] bg-teal-600 text-white py-5 rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-teal-700 transition-all shadow-2xl shadow-teal-100 flex items-center justify-center gap-2"
                     >
                       Continue <ChevronRight size={16} />
                     </button>
@@ -684,18 +693,12 @@ export default function Appointment() {
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Booking Summary</h3>
 
               <div className="flex gap-4 items-start">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl overflow-hidden shrink-0 border border-gray-100">
-                  {selectedDoctor?.image ? (
-                    <img src={selectedDoctor.image} alt={selectedDoctor.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-indigo-600 font-black text-xl bg-indigo-50">
-                      {selectedDoctor?.name?.[0]}
-                    </div>
-                  )}
+                <div className="w-16 h-16 bg-teal-50 rounded-2xl overflow-hidden shrink-0 border border-teal-100 flex items-center justify-center text-teal-600 font-black text-xl">
+                  {selectedDoctor?.name?.[0]}
                 </div>
                 <div>
-                  <h4 className="font-black text-gray-900">{selectedDoctor?.name || "Dr. Loading..."}</h4>
-                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-0.5">{selectedDoctor?.speciality}</p>
+                  <h4 className="font-black text-gray-900">{selectedDoctor?.name || "Select Specialist"}</h4>
+                  <p className="text-[10px] font-bold text-teal-600 uppercase tracking-widest mt-0.5">{selectedDoctor?.speciality || "Healthcare Pro"}</p>
                   <div className="flex items-center gap-1 text-[10px] text-orange-400 font-black mt-1">
                     <Star size={10} fill="currentColor" /> {selectedDoctor?.rating || "4.9"}
                   </div>
@@ -717,15 +720,15 @@ export default function Appointment() {
                 </div>
                 <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100">
                   <div className="flex items-center gap-2">
-                    <CreditCard size={18} className="text-indigo-600" />
+                    <CreditCard size={18} className="text-teal-600" />
                     <span className="text-sm font-black text-gray-900">Total</span>
                   </div>
-                  <span className="text-2xl font-black text-indigo-600">₹{selectedDoctor?.fee || "0"}</span>
+                  <span className="text-2xl font-black text-teal-600">₹{selectedDoctor?.fee || "0"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-indigo-600 rounded-[40px] text-white relative overflow-hidden shadow-xl shadow-blue-200">
+            <div className="p-8 bg-teal-600 rounded-[40px] text-white relative overflow-hidden shadow-xl shadow-teal-100">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full"></div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-4">Patient Support</p>
               <p className="text-sm font-bold leading-relaxed mb-6">Need help with your booking? Our medical team is online 24/7 to assist you.</p>

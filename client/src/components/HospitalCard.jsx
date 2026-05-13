@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, StarHalf, ChevronLeft, ChevronRight, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
+import { Star, StarHalf, ChevronLeft, ChevronRight, MapPin, ShieldCheck, Sparkles, Building } from 'lucide-react';
 
 const HospitalCard = ({ hospital, onSelect, isSelected }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = hospital.images?.length > 0 ? hospital.images : [hospital.image || "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=600"];
+  const images = [`https://picsum.photos/seed/${hospital._id}/600/400`];
   
   const carouselRef = useRef(null);
 
@@ -26,7 +26,7 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
   };
 
   const renderStars = (rating) => {
-    if (!rating) return <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-widest">New</span>;
+    if (!rating) return <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-widest">New</span>;
     
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -53,62 +53,22 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
     <div 
       onClick={() => onSelect(hospital)}
       className={`group relative bg-white rounded-[32px] border-2 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col h-full ${
-        isSelected ? 'border-indigo-600 shadow-2xl shadow-indigo-100 scale-[1.02]' : 'border-gray-50 hover:border-blue-200 hover:shadow-xl hover:-translate-y-1'
+        isSelected ? 'border-teal-600 shadow-2xl shadow-teal-100 scale-[1.02]' : 'border-gray-50 hover:border-teal-200 hover:shadow-xl hover:-translate-y-1'
       }`}
     >
-      {/* IMAGE CAROUSEL SECTION */}
-      <div className="relative h-64 overflow-hidden">
-        <div 
-          className="flex h-full transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-        >
-          {images.map((img, idx) => (
-            <img
-              key={idx}
-              src={img}
-              loading="lazy"
-              alt={`${hospital.name} view ${idx + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
-          ))}
+      {/* ICON HEADER SECTION */}
+      <div className="relative h-48 bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+        </div>
+        <div className="relative z-10 w-24 h-24 bg-white/10 backdrop-blur-xl rounded-[32px] flex items-center justify-center border border-white/20 shadow-2xl">
+          <Building size={48} className="text-white" />
         </div>
         
-        {/* OVERLAYS */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        
-        {/* CAROUSEL CONTROLS */}
-        {images.length > 1 && (
-          <>
-            <button 
-              onClick={prevImage}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 backdrop-blur-lg text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button 
-              onClick={nextImage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 backdrop-blur-lg text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40"
-            >
-              <ChevronRight size={20} />
-            </button>
-            {/* DOT INDICATORS */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-              {images.map((_, idx) => (
-                <div 
-                  key={idx}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    idx === currentImageIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
         {/* TOP BADGE */}
         <div className="absolute top-4 left-4 flex gap-2">
           <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-sm border border-white">
-            <ShieldCheck size={14} className="text-indigo-600" />
+            <ShieldCheck size={14} className="text-teal-600" />
             <span className="text-[9px] font-black uppercase tracking-widest text-gray-700">Verified</span>
           </div>
         </div>
@@ -118,13 +78,13 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
       <div className="p-6 flex-1 flex flex-col gap-4">
         <div className="space-y-1">
           <div className="flex justify-between items-start">
-            <h3 className="font-black text-xl text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
+            <h3 className="font-black text-xl text-gray-900 leading-tight group-hover:text-teal-600 transition-colors">
               {hospital.name}
             </h3>
           </div>
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2 text-gray-400">
-              <MapPin size={12} className="text-indigo-500" />
+              <MapPin size={12} className="text-teal-500" />
               <span className="text-xs font-bold">{hospital.city}</span>
             </div>
             {renderStars(hospital.rating)}
@@ -140,8 +100,8 @@ const HospitalCard = ({ hospital, onSelect, isSelected }) => {
           <button 
             className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${
               isSelected 
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
-                : 'bg-gray-50 text-gray-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-indigo-50'
+                ? 'bg-teal-600 text-white shadow-lg shadow-teal-100' 
+                : 'bg-gray-50 text-gray-400 group-hover:bg-teal-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-teal-50'
             }`}
           >
             {isSelected ? (

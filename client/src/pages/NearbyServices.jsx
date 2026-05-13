@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import { MapPin, Phone, Navigation, Clock, Globe, Star, MessageSquare, Video, ChevronLeft, ChevronRight, Building } from "lucide-react"
+import { MapPin, Phone, Navigation, Clock, Globe, Star, MessageSquare, Video, ChevronLeft, ChevronRight, Building, CalendarCheck2 } from "lucide-react"
 
 // LEAFLET IMPORTS
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
@@ -172,12 +172,8 @@ export default function NearbyServices() {
             {activeTab === "hospitals" && hospitals.map((h) => (
               <div key={h._id} className="group border border-gray-100 rounded-2xl p-4 hover:border-teal-400 hover:shadow-xl hover:shadow-teal-50/50 transition-all bg-gray-50/30">
                 <div className="flex gap-4 items-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-50">
-                    <img 
-                      src={h.image || "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=200"} 
-                      alt={h.name} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-teal-50 flex items-center justify-center text-teal-600 shrink-0 border border-teal-100 shadow-sm">
+                    <Building size={28} />
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
@@ -202,16 +198,7 @@ export default function NearbyServices() {
               <div key={d._id} className="group border border-gray-100 rounded-2xl p-5 hover:border-teal-400 hover:shadow-xl hover:shadow-teal-50/50 transition-all bg-gray-50/30">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden bg-teal-50 flex items-center justify-center text-teal-600 font-bold text-lg shadow-lg shadow-teal-100 border border-teal-50">
-                    {d.image ? (
-                      <img 
-                        src={d.image} 
-                        alt={d.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=200"; }}
-                      />
-                    ) : (
-                      <span>{d.name?.[0]}</span>
-                    )}
+                    <span>{d.name?.[0]}</span>
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-gray-900 text-sm group-hover:text-teal-600 transition-colors">{d.name}</h3>
@@ -225,8 +212,29 @@ export default function NearbyServices() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <a href={`tel:${d.phone}`} className="flex-1 bg-teal-600 text-white py-2 rounded-xl text-[10px] font-bold text-center hover:bg-teal-700 transition-all">Book Visit</a>
-                  <button onClick={() => navigate("/video-consult")} className="flex-1 bg-white border border-teal-200 text-teal-600 py-2 rounded-xl text-[10px] font-bold text-center hover:bg-teal-50 transition-all">Video Consult</button>
+                  <button 
+                    onClick={() => navigate("/appointment", { 
+                      state: { 
+                        fromAI: true, 
+                        doctor: d,
+                        city: d.city,
+                        hospital: d.hospital
+                      } 
+                    })}
+                    className="flex-1 bg-teal-600 text-white py-2.5 rounded-xl text-[10px] font-bold text-center hover:bg-teal-700 transition-all flex items-center justify-center gap-1 shadow-lg shadow-teal-100"
+                  >
+                    <CalendarCheck2 size={12} /> Book Visit
+                  </button>
+                  <a 
+                    href={d.lat && d.lng 
+                      ? `https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}` 
+                      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(d.hospital + " " + (d.city || ""))}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex-1 bg-white border border-teal-200 text-teal-600 py-2.5 rounded-xl text-[10px] font-bold text-center hover:bg-teal-50 transition-all flex items-center justify-center gap-1"
+                  >
+                    <Navigation size={12} /> Directions
+                  </a>
                 </div>
               </div>
             ))}
@@ -284,6 +292,7 @@ export default function NearbyServices() {
               </Marker>
             ))}
 
+            {/* DOCTORS ON MAP */}
             {activeTab === "doctors" && allDoctors.filter(d => d.lat && d.lng).map(d => (
               <Marker key={d._id} position={[d.lat, d.lng]}>
                 <Popup>

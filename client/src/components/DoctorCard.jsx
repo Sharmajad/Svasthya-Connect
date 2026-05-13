@@ -6,11 +6,9 @@ const DoctorCard = ({ doctor }) => {
     <div className="col-md-4 mb-4">
       <div className="card p-3 text-center">
 
-        <img
-          src="https://via.placeholder.com/150"
-          alt="doctor"
-          className="card-img-top"
-        />
+        <div className="w-24 h-24 mx-auto bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black text-3xl shadow-lg border-4 border-white mb-4">
+          {doctor.name?.[0]}
+        </div>
 
         <h5 className="mt-3">{doctor.name}</h5>
         <p>{doctor.specialization}</p>

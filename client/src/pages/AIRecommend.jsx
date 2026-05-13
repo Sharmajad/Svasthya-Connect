@@ -325,8 +325,8 @@ export default function AIRecommend() {
                       <div key={i} className="bg-white border border-gray-100 p-6 rounded-[24px] hover:border-blue-500 hover:shadow-xl transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 -mr-8 -mt-8 rounded-full"></div>
                         <div className="flex gap-4 items-start mb-4">
-                          <div className="w-14 h-14 bg-gray-100 rounded-2xl overflow-hidden shrink-0">
-                            {doc.image ? <img src={doc.image} alt={doc.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><User size={24} /></div>}
+                          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm border border-indigo-100">
+                            {doc.name?.[0] || <User size={24} />}
                           </div>
                           <div>
                             <h4 className="font-black text-gray-900">{doc.name}</h4>

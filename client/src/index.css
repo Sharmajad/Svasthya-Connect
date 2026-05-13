@@ -246,3 +246,50 @@
     padding-right: env(safe-area-inset-right);
   }
 }
+
+/* ── ENTRANCE ANIMATIONS ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1.2s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-200 { animation-delay: 0.2s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-700 { animation-delay: 0.7s; }
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.animate-float-slow {
+  animation: float1 10s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }

@@ -17,7 +17,12 @@ import {
   Flame, 
   Shield,
   Stethoscope,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  Pill,
+  Syringe,
+  Microscope,
+  Star
 } from "lucide-react"
 
 export default function Medicines() {
@@ -78,180 +83,224 @@ export default function Medicines() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-16 px-6 animate-in fade-in duration-700">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      
+      {/* ── PREMIUM BACKGROUND DECORATION ── */}
+      <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-teal-50/40 via-white to-transparent -z-10"></div>
+      <div className="absolute top-20 right-[-5%] w-[500px] h-[500px] bg-teal-100/20 rounded-full blur-[120px] -z-10 animate-pulse"></div>
+      <div className="absolute top-40 left-[-5%] w-[400px] h-[400px] bg-emerald-50/30 rounded-full blur-[100px] -z-10"></div>
+      
+      {/* Floating Icons */}
+      <Pill className="absolute top-32 left-10 text-teal-600/10 w-24 h-24 float-1 -z-10" />
+      <Syringe className="absolute top-60 right-20 text-teal-600/5 w-32 h-32 float-2 -z-10" />
+      <Microscope className="absolute bottom-40 right-10 text-teal-600/5 w-40 h-40 float-3 -z-10" />
 
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[2px] mb-6 shadow-sm border border-teal-100">
-              <Zap size={14} className="animate-pulse" /> Medicine Marketplace
+      <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
+
+        {/* ── REDESIGNED HERO SECTION ── */}
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto mb-20 animate-in fade-in slide-in-from-top-10 duration-1000">
+          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full border border-teal-100 shadow-xl shadow-teal-900/5 mb-8 group hover:scale-105 transition-transform duration-500">
+            <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-teal-200">
+              <Zap size={14} className="animate-pulse" />
             </div>
-            <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-[1.1] mb-6">
-              Pharmacy <span className="text-teal-600">Network</span>
-            </h1>
-            <p className="text-gray-400 font-medium text-lg">
-              Compare prices across India's top platforms. Get medicines delivered directly to your doorstep anywhere in Jharkhand.
-            </p>
+            <span className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Verified Marketplace</span>
+            <div className="h-4 w-px bg-gray-200 mx-2"></div>
+            <span className="text-[10px] font-bold text-teal-600 uppercase">24hr Delivery</span>
           </div>
-          <div className="flex flex-col gap-2 shrink-0">
-            <div className="flex -space-x-3">
-              {[1,2,3,4].map(i => <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-gray-100"></div>)}
-            </div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Trusted by 50k+ Users</p>
-          </div>
+
+          <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight leading-[1.1] mb-8">
+            The Smart <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700">Pharmacy Network</span>
+          </h1>
+          
+          <p className="text-gray-500 font-medium text-lg md:text-xl leading-relaxed max-w-2xl">
+            Compare live prices across India's top medical platforms. Secure authentic medicines with express delivery to <span className="text-gray-900 font-bold underline decoration-teal-400 underline-offset-8">Jharkhand</span>.
+          </p>
         </div>
 
-        {/* SMART SEARCH */}
-        <div className="bg-gray-50 rounded-[40px] p-8 md:p-12 mb-16 border border-gray-100 relative overflow-hidden shadow-2xl shadow-gray-50">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 blur-[80px] rounded-full"></div>
-          <div className="relative z-10">
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 px-1">Universal Medicine Search</h2>
+        {/* ── PREMIUM SEARCH BAR ── */}
+        <div className="max-w-4xl mx-auto mb-24 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[40px] p-4 md:p-6 border border-white shadow-[0_32px_64px_-16px_rgba(13,148,136,0.12)] group">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative group">
+              <div className="flex-1 relative">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-focus-within:text-teal-600 transition-colors">
+                  <Search size={24} />
+                </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Enter medicine name (e.g. Paracetamol)..."
-                  className="w-full bg-white border-2 border-transparent px-8 py-5 rounded-[24px] font-bold text-lg focus:outline-none focus:border-teal-600 transition-all pl-16 shadow-xl shadow-gray-100"
+                  placeholder="What medicine are you looking for?"
+                  className="w-full bg-transparent border-2 border-transparent px-8 py-6 pl-20 rounded-[32px] font-bold text-xl text-gray-800 focus:outline-none focus:border-teal-500/20 transition-all placeholder:text-gray-300"
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch() }}
                 />
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-teal-600 transition-colors" size={24} />
               </div>
               <button
                 onClick={handleSearch}
-                className="bg-gray-900 text-white px-10 py-5 rounded-[24px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200"
+                className="bg-gray-900 text-white px-12 py-6 rounded-[32px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-2xl shadow-gray-200 flex items-center justify-center gap-3 group/btn"
               >
-                Find Best Price
+                Find Best Price <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
             
-            {searchTerm.trim() && (
-              <div className="mt-8 flex flex-wrap gap-3 animate-in fade-in slide-in-from-top-4">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest w-full mb-1">Search specifically on:</p>
+            {searchTerm.trim() ? (
+              <div className="mt-8 px-6 pb-4 flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest w-full mb-2">Search results will open from:</p>
                 {platforms.map((p) => (
                   <a
                     key={p.name}
                     href={p.searchUrl + encodeURIComponent(searchTerm)}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:border-teal-400 hover:text-teal-600 transition-all shadow-sm"
+                    className="flex items-center gap-3 bg-gray-50 px-6 py-3 rounded-2xl border border-transparent text-[10px] font-black uppercase tracking-widest text-gray-600 hover:border-teal-400 hover:bg-white hover:text-teal-600 transition-all shadow-sm group/tag"
                   >
-                    <p.icon size={14} /> {p.name}
+                    <p.icon size={16} className="opacity-40 group-hover/tag:opacity-100 transition-opacity" /> {p.name}
                   </a>
                 ))}
+              </div>
+            ) : (
+              <div className="mt-6 px-8 pb-2 flex items-center gap-4">
+                 <div className="flex items-center gap-1.5 px-3 py-1 bg-teal-50 rounded-full">
+                    <Sparkles size={12} className="text-teal-600" />
+                    <span className="text-[9px] font-black text-teal-600 uppercase tracking-widest">Universal Search</span>
+                 </div>
+                 <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Type to compare prices instantly</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* PLATFORM GRIDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {platforms.map((p) => (
-            <div key={p.name} className={`relative flex flex-col rounded-[40px] border-2 p-8 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-100 group ${p.color}`}>
-              <div className="flex items-center justify-between mb-8">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-gray-100 group-hover:scale-110 transition-transform duration-500">
-                  <p.icon size={28} className={p.textColor} />
+        {/* ── PLATFORM CARDS (Subtle Redesign) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+          {platforms.map((p, idx) => (
+            <div 
+              key={p.name} 
+              className={`relative flex flex-col rounded-[48px] border-2 p-10 transition-all duration-700 hover:shadow-2xl hover:shadow-teal-900/5 group animate-in fade-in slide-up-delay-${idx+1} ${p.color}`}
+            >
+              <div className="flex items-center justify-between mb-10">
+                <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-xl shadow-gray-200/50 group-hover:rotate-6 transition-transform duration-500">
+                  <p.icon size={32} className={p.textColor} />
                 </div>
                 <div className="text-right">
                   <h3 className={`font-black text-2xl tracking-tighter ${p.textColor}`}>{p.name}</h3>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-[2px]">{p.tagline}</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">{p.tagline}</p>
                 </div>
               </div>
-              <p className="text-sm font-medium text-gray-600 leading-relaxed mb-8 flex-1">{p.desc}</p>
-              <div className="space-y-3 mb-10">
+              
+              <p className="text-base font-medium text-gray-500 leading-relaxed mb-10 flex-1">{p.desc}</p>
+              
+              <div className="space-y-4 mb-12">
                 {p.features.map((f) => (
-                  <div key={f} className="flex items-center gap-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    <CheckCircle size={14} className="text-teal-500" /> {f}
+                  <div key={f} className="flex items-center gap-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                    <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm">
+                       <CheckCircle size={14} className="text-teal-500" />
+                    </div>
+                    {f}
                   </div>
                 ))}
               </div>
+
               <a
                 href={p.url}
                 target="_blank"
                 rel="noreferrer"
-                className={`w-full py-5 rounded-[24px] text-white font-black text-[11px] uppercase tracking-widest text-center transition-all shadow-xl shadow-gray-100 flex items-center justify-center gap-2 ${p.btnColor}`}
+                className={`w-full py-6 rounded-[32px] text-white font-black text-[12px] uppercase tracking-[0.2em] text-center transition-all shadow-xl flex items-center justify-center gap-3 ${p.btnColor} shadow-teal-900/5`}
               >
-                Open Store <ArrowRight size={16} />
+                Launch Store <ArrowRight size={18} />
               </a>
             </div>
           ))}
         </div>
 
-        {/* COMMONLY NEEDED */}
-        <div className="bg-gray-900 rounded-[48px] p-10 md:p-12 mb-16 text-white relative overflow-hidden">
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+        {/* ── ESSENTIALS SECTION (Modernized) ── */}
+        <div className="bg-gray-900 rounded-[64px] p-12 md:p-20 mb-24 text-white relative overflow-hidden group/essentials">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-500/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-1000"></div>
+          
           <div className="relative z-10">
-            <h2 className="text-[10px] font-black text-white/40 uppercase tracking-[2px] mb-8">Essentials Quick Search</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+              <div className="space-y-4">
+                <h2 className="text-[11px] font-black text-teal-400 uppercase tracking-[0.4em]">Essential Quick Search</h2>
+                <h3 className="text-4xl font-black tracking-tight">Most Needed <span className="text-white/40 italic font-medium">Everyday</span></h3>
+              </div>
+              <div className="flex gap-2">
+                 {[1,2,3].map(i => <div key={i} className="w-2 h-2 bg-teal-500 rounded-full opacity-40"></div>)}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-6">
               {commonMedicines.map((m) => (
                 <button
                   key={m.name}
                   onClick={() => window.open("https://www.1mg.com/search/all?name=" + encodeURIComponent(m.name), "_blank")}
-                  className="bg-white/5 border border-white/10 p-6 rounded-[32px] text-center hover:bg-white hover:text-gray-900 transition-all duration-500 group"
+                  className="bg-white/5 border border-white/10 p-8 rounded-[40px] text-center hover:bg-white hover:text-gray-900 transition-all duration-700 group/med"
                 >
-                  <div className={`w-12 h-12 rounded-2xl ${m.bg} ${m.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
-                    <m.icon size={24} />
+                  <div className={`w-16 h-16 rounded-[24px] ${m.bg} ${m.color} flex items-center justify-center mx-auto mb-6 group-hover/med:scale-110 group-hover/med:rotate-3 transition-transform shadow-lg`}>
+                    <m.icon size={32} />
                   </div>
-                  <p className="font-black text-xs mb-1">{m.name}</p>
-                  <p className="text-[9px] font-black opacity-40 uppercase tracking-tighter">{m.use}</p>
+                  <p className="font-black text-sm mb-1">{m.name}</p>
+                  <p className="text-[10px] font-black opacity-40 uppercase tracking-tighter">{m.use}</p>
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* PRESCRIPTION ACTION */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <div className="bg-teal-600 rounded-[40px] p-10 text-white shadow-2xl shadow-teal-100 flex flex-col justify-between">
-            <div>
-              <div className="w-16 h-16 bg-white/20 rounded-[24px] flex items-center justify-center mb-8">
-                <ClipboardList size={32} />
+        {/* ── FOOTER ACTIONS ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="bg-gradient-to-br from-teal-600 to-emerald-700 rounded-[48px] p-12 text-white shadow-2xl shadow-teal-900/20 relative overflow-hidden group/pres">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-3xl rounded-full translate-x-1/3 -translate-y-1/3"></div>
+            <div className="relative z-10 h-full flex flex-col">
+              <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-[28px] flex items-center justify-center mb-10 shadow-inner">
+                <ClipboardList size={40} className="text-white" />
               </div>
-              <h2 className="text-3xl font-black mb-4">Have a Prescription?</h2>
-              <p className="text-teal-50 font-medium leading-relaxed mb-10">
-                Upload your medical prescription to your profile. Doctors can review it during consultations for better care.
+              <h2 className="text-4xl font-black mb-6 tracking-tight">Digital <br />Prescription</h2>
+              <p className="text-teal-50/80 font-medium leading-relaxed mb-12 text-lg">
+                Upload your medical records to your secure profile. Enable instant review for doctors during live consultations.
               </p>
+              <button
+                onClick={() => navigate("/profile")}
+                className="mt-auto w-full bg-white text-teal-700 py-6 rounded-[32px] font-black text-sm uppercase tracking-[0.2em] hover:bg-teal-50 transition-all shadow-2xl shadow-teal-900/10 flex items-center justify-center gap-3"
+              >
+                Upload Record <Smartphone size={18} />
+              </button>
             </div>
-            <button
-              onClick={() => navigate("/profile")}
-              className="w-full bg-white text-teal-600 py-5 rounded-[24px] font-black text-[11px] uppercase tracking-widest hover:bg-teal-50 transition-all shadow-xl shadow-teal-900/10"
-            >
-              Upload to Digital Profile
-            </button>
           </div>
 
           <div className="space-y-8">
-            <div className="bg-gray-50 rounded-[40px] p-8 border border-gray-100 flex items-center gap-6 group hover:border-teal-200 transition-all">
-              <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-teal-600 shadow-sm shrink-0">
-                <Zap size={32} />
-              </div>
-              <div>
-                <h3 className="font-black text-gray-900 mb-2">AI Analysis</h3>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed">
-                  Analyze your medical reports with our advanced Health AI for deeper insights.
-                </p>
-                <button onClick={() => navigate("/ai-recommend")} className="mt-4 flex items-center gap-2 text-[10px] font-black text-teal-600 uppercase tracking-widest hover:underline">
-                  Get Started <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-[40px] p-8 border border-gray-100 flex items-center gap-6 group hover:border-orange-200 transition-all">
-              <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-orange-600 shadow-sm shrink-0">
-                <Shield size={32} />
-              </div>
-              <div>
-                <h3 className="font-black text-gray-900 mb-2">Verified Stores</h3>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed">
-                  Only licensed pharmacies with genuine medicines are part of our network.
-                </p>
-                <div className="mt-4 flex items-center gap-1.5">
-                  {[1,2,3].map(i => <CheckCircle key={i} size={14} className="text-orange-500" />)}
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest ml-1">100% Secure</span>
+            <div className="bg-gray-50/50 backdrop-blur-sm rounded-[48px] p-10 border-2 border-gray-100 flex flex-col gap-8 group hover:border-teal-200 hover:bg-white transition-all duration-500">
+              <div className="flex items-center gap-6">
+                <div className="w-20 h-20 bg-white rounded-[32px] flex items-center justify-center text-teal-600 shadow-xl shadow-gray-200 group-hover:scale-105 transition-transform">
+                  <Activity size={40} />
+                </div>
+                <div>
+                  <h3 className="font-black text-2xl text-gray-900 mb-1">AI Health Lab</h3>
+                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest">Smart Analysis Engine</p>
                 </div>
               </div>
+              <p className="text-gray-400 font-medium leading-relaxed">
+                Connect your medical reports to our advanced Health AI. Get layman-friendly insights and personalized health recommendations instantly.
+              </p>
+              <button onClick={() => navigate("/ai-recommend")} className="flex items-center justify-between bg-white px-8 py-4 rounded-3xl border border-gray-100 group-hover:border-teal-100 transition-all">
+                <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest">Get Started</span>
+                <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 group-hover:translate-x-2 transition-transform">
+                   <ChevronRight size={18} />
+                </div>
+              </button>
+            </div>
+
+            <div className="bg-gray-900 rounded-[48px] p-10 flex items-center gap-8 group hover:scale-[1.02] transition-all duration-500">
+               <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center text-orange-400 border border-white/5">
+                  <Shield size={40} />
+               </div>
+               <div>
+                  <h3 className="font-black text-white text-xl mb-2">Verified Network</h3>
+                  <p className="text-xs text-white/40 font-medium leading-relaxed">
+                    100% Genuine medicines from licensed pharmacists across India.
+                  </p>
+                  <div className="flex gap-1 mt-4">
+                     {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-orange-400 fill-current" />)}
+                  </div>
+               </div>
             </div>
           </div>
         </div>

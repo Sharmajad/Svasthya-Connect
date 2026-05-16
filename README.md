@@ -113,4 +113,4 @@ npm run dev
 Distributed under the MIT License.
 
 ## 👥 Contributors
-- **Shubham Sharma** (Lead Developer)
+- **S Sharma** (Lead Developer)

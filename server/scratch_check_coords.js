@@ -1,21 +1,22 @@
-
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import Hospital from "./src/models/Hospital.js";
-
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 dotenv.config();
 
-const checkCoords = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/e_healthcare");
+const HospitalSchema = new mongoose.Schema({ name: String, lat: Number, lng: Number });
+const DoctorSchema = new mongoose.Schema({ name: String, lat: Number, lng: Number });
+
+const Hospital = mongoose.model('Hospital', HospitalSchema);
+const Doctor = mongoose.model('Doctor', DoctorSchema);
+
+async function checkCoords() {
+    await mongoose.connect(process.env.MONGO_URI);
     const hospitals = await Hospital.find({ lat: { $exists: true } });
-    console.log(`Found ${hospitals.length} hospitals with coordinates.`);
-    hospitals.slice(0, 5).forEach(h => {
-        console.log(`${h.name}: ${h.lat}, ${h.lng}`);
-    });
+    const doctors = await Doctor.find({ lat: { $exists: true } });
+    console.log(`Hospitals with coords: ${hospitals.length}`);
+    console.log(`Doctors with coords: ${doctors.length}`);
+    if (hospitals.length > 0) console.log('Sample hospital:', hospitals[0]);
+    if (doctors.length > 0) console.log('Sample doctor:', doctors[0]);
     await mongoose.disconnect();
-  } catch (err) {
-    console.error(err);
-  }
-};
+}
+
 checkCoords();

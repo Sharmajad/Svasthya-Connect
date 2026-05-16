@@ -38,23 +38,27 @@ export const getDoctors = async (req, res) => {
     
     let processedDoctors = allDoctors;
 
+    // Map hLat/hLng to lat/lng for consistent frontend usage
+    processedDoctors = allDoctors.map(d => ({
+      ...d,
+      lat: d.hLat || null,
+      lng: d.hLng || null
+    }))
+
     if (lat && lng) {
       const userLat = parseFloat(lat)
       const userLng = parseFloat(lng)
 
-      processedDoctors = allDoctors.map(d => {
-        const dLat = d.hLat || d.lat;
-        const dLng = d.hLng || d.lng;
+      processedDoctors = processedDoctors.map(d => {
+        if (!d.lat || !d.lng) return { ...d, distance: 9999 }
 
-        if (!dLat || !dLng) return { ...d, distance: 9999 }
-
-        const radLat = (dLat - userLat) * Math.PI / 180
-        const radLng = (dLng - userLng) * Math.PI / 180
+        const radLat = (d.lat - userLat) * Math.PI / 180
+        const radLng = (d.lng - userLng) * Math.PI / 180
         const a = Math.sin(radLat/2) * Math.sin(radLat/2) + 
-                  Math.cos(userLat * Math.PI / 180) * Math.cos(dLat * Math.PI / 180) * 
+                  Math.cos(userLat * Math.PI / 180) * Math.cos(d.lat * Math.PI / 180) * 
                   Math.sin(radLng/2) * Math.sin(radLng/2)
         const distance = (6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1)
-        return { ...d, distance: parseFloat(distance), lat: dLat, lng: dLng }
+        return { ...d, distance: parseFloat(distance) }
       })
 
       processedDoctors.sort((a, b) => {

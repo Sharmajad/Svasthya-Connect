@@ -1,4 +1,5 @@
 import fs from "fs"
+import path from "path"
 import Report from "../models/Report.js"
 import Doctor from "../models/Doctor.js"
 import { model } from "../config/gemini.js"
@@ -404,31 +405,30 @@ Analyze carefully and choose the most relevant doctor specialization.`;
   }
 };
 
- e x p o r t   c o n s t   d e l e t e R e p o r t   =   a s y n c   ( r e q ,   r e s )   = >   { 
-     t r y   { 
-         c o n s t   {   i d   }   =   r e q . p a r a m s ; 
-         c o n s t   r e p o r t   =   a w a i t   R e p o r t . f i n d B y I d ( i d ) ; 
- 
-         i f   ( ! r e p o r t )   { 
-             r e t u r n   r e s . s t a t u s ( 4 0 4 ) . j s o n ( {   m e s s a g e :   ' D o c u m e n t   n o t   f o u n d '   } ) ; 
-         } 
- 
-         i f   ( r e p o r t . u s e r I d . t o S t r i n g ( )   ! = =   r e q . u s e r . _ i d . t o S t r i n g ( ) )   { 
-             r e t u r n   r e s . s t a t u s ( 4 0 3 ) . j s o n ( {   m e s s a g e :   ' N o t   a u t h o r i z e d   t o   d e l e t e   t h i s   d o c u m e n t '   } ) ; 
-         } 
- 
-         i f   ( r e p o r t . f i l e U r l   & &   r e p o r t . f i l e U r l   ! = =   ' N / A '   & &   r e p o r t . f i l e U r l   ! = =   ' A I   P r o c e s s e d ' )   { 
-             c o n s t   f i l e N a m e   =   r e p o r t . f i l e U r l . r e p l a c e ( / ^ . * [ \ \ \ / ] u p l o a d s [ \ \ \ / ] / ,   ' ' ) . r e p l a c e ( / ^ u p l o a d s [ \ \ \ / ] / ,   ' ' ) . r e p l a c e ( / ^ \ / / ,   ' ' ) ; 
-             c o n s t   f i l e P a t h   =   p a t h . j o i n ( p r o c e s s . c w d ( ) ,   ' u p l o a d s ' ,   f i l e N a m e ) ; 
-             i f   ( f s . e x i s t s S y n c ( f i l e P a t h ) )   { 
-                 f s . u n l i n k S y n c ( f i l e P a t h ) ; 
-             } 
-         } 
- 
-         a w a i t   R e p o r t . f i n d B y I d A n d D e l e t e ( i d ) ; 
-         r e s . j s o n ( {   m e s s a g e :   ' D o c u m e n t   d e l e t e d   s u c c e s s f u l l y '   } ) ; 
-     }   c a t c h   ( e r r o r )   { 
-         r e s . s t a t u s ( 5 0 0 ) . j s o n ( {   m e s s a g e :   e r r o r . m e s s a g e   } ) ; 
-     } 
- } ;  
- 
+export const deleteReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await Report.findById(id);
+
+    if (!report) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    if (report.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this document" });
+    }
+
+    if (report.fileUrl && report.fileUrl !== "N/A" && report.fileUrl !== "AI Processed") {
+      const fileName = report.fileUrl.replace(/^.*[\\\/]uploads[\\\/]/, "").replace(/^uploads[\\\/]/, "").replace(/^\//, "");
+      const filePath = path.join(process.cwd(), "uploads", fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await Report.findByIdAndDelete(id);
+    res.json({ message: "Document deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

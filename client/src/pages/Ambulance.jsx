@@ -79,26 +79,26 @@ export default function Ambulance() {
       <div className="max-w-4xl mx-auto">
 
         {/* SOS HEADER */}
-        <div className="relative bg-red-600 rounded-[48px] p-10 md:p-16 text-center mb-12 overflow-hidden shadow-2xl shadow-red-100">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 blur-[60px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+        <div className="relative bg-red-600 rounded-[32px] p-6 md:p-8 text-center mb-8 overflow-hidden shadow-2xl shadow-red-100">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 blur-[40px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
           
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-24 h-24 bg-white/20 rounded-[32px] flex items-center justify-center mb-8 animate-pulse border border-white/30 backdrop-blur-sm">
-              <Bell size={48} className="text-white" />
+            <div className="w-16 h-16 bg-white/20 rounded-[20px] flex items-center justify-center mb-4 animate-pulse border border-white/30 backdrop-blur-sm">
+              <Bell size={32} className="text-white" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4 leading-none">
+            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 leading-none">
               Emergency SOS
             </h1>
-            <p className="text-red-100 font-medium mb-10 max-w-sm mx-auto uppercase tracking-widest text-xs">
+            <p className="text-red-100 font-medium mb-6 max-w-sm mx-auto uppercase tracking-widest text-[10px] md:text-xs">
               Direct connection to Jharkhand medical rescue
             </p>
-            <a href="tel:108" className="group relative bg-white text-red-600 px-12 py-5 rounded-[24px] font-black text-2xl shadow-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-4">
-              <Phone size={28} className="animate-bounce" /> Call 108 Now
+            <a href="tel:108" className="group relative bg-white text-red-600 px-8 py-3 rounded-[20px] font-black text-xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
+              <Phone size={24} className="animate-bounce" /> Call 108 Now
               <div className="absolute -inset-1 bg-white/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </a>
-            <div className="flex items-center gap-2 mt-8 text-white/60 text-[10px] font-black uppercase tracking-widest">
-              <Zap size={14} className="text-yellow-400" /> Free Service · 24/7 Response · Nationwide
+            <div className="flex items-center gap-2 mt-4 text-white/60 text-[9px] md:text-[10px] font-black uppercase tracking-widest">
+              <Zap size={12} className="text-yellow-400" /> Free Service · 24/7 Response · Nationwide
             </div>
           </div>
         </div>

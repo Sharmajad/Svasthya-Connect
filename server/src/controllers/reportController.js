@@ -52,7 +52,9 @@ import path from "path"
 import Report from "../models/Report.js"
 import Doctor from "../models/Doctor.js"
 import { model } from "../config/gemini.js"
-import pdfParse from "pdf-parse"          // FIX: was incorrectly imported as a named export
+import { createRequire } from "module"
+const require = createRequire(import.meta.url)
+const pdfParse = require("pdf-parse")
 import Tesseract from "tesseract.js"
 import Groq from "groq-sdk"
 import multer from "multer"

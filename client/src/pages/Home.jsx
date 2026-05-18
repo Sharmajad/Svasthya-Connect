@@ -216,7 +216,7 @@ function Features() {
       desc: "Instant slots at top hospitals.", 
       path: "/appointment", 
       color: "text-teal-600",
-      bg: "bg-teal-50/50",
+      bg: "bg-teal-50",
       border: "hover:border-teal-200"
     },
     { 
@@ -224,45 +224,45 @@ function Features() {
       title: "Video Consult", 
       desc: "Connect with doctors from home.", 
       path: "/video-consult", 
-      color: "text-blue-600",
-      bg: "bg-blue-50/50",
-      border: "hover:border-blue-200"
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "hover:border-teal-200"
     },
     { 
       icon: <Sparkles size={24} />, 
       title: "AI Analysis", 
       desc: "Upload reports for smart insights.", 
       path: "/ai-recommend", 
-      color: "text-purple-600",
-      bg: "bg-purple-50/50",
-      border: "hover:border-purple-200"
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "hover:border-teal-200"
     },
     { 
       icon: <MapPin size={24} />, 
       title: "Nearby Services", 
       desc: "Find care closest to you.", 
       path: "/nearby", 
-      color: "text-orange-600",
-      bg: "bg-orange-50/50",
-      border: "hover:border-orange-200"
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "hover:border-teal-200"
     },
     { 
       icon: <AmbulanceIcon size={24} />, 
       title: "Emergency", 
       desc: "One-tap ambulance dispatch.", 
       path: "/ambulance", 
-      color: "text-red-600",
-      bg: "bg-red-50/50",
-      border: "hover:border-red-200"
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "hover:border-teal-200"
     },
     { 
       icon: <Pill size={24} />, 
       title: "Order Medicines", 
       desc: "Express delivery anywhere.", 
       path: "/medicines", 
-      color: "text-emerald-600",
-      bg: "bg-emerald-50/50",
-      border: "hover:border-emerald-200"
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "hover:border-teal-200"
     },
   ]
 
@@ -279,19 +279,17 @@ function Features() {
           {features.map((f, idx) => (
             <div 
               key={f.title} 
-              onClick={() => {
-                navigate(f.path)
-              }}
-              className={`group relative p-8 rounded-[32px] border border-gray-100 bg-white transition-all duration-500 cursor-pointer hover:shadow-2xl hover:shadow-teal-900/5 ${f.border}`}
+              onClick={() => navigate(f.path)}
+              className={`group relative p-6 rounded-[24px] border border-gray-50 bg-white hover:bg-gray-50/30 transition-all duration-500 cursor-pointer hover:shadow-xl hover:shadow-teal-900/5 hover:-translate-y-1 ${f.border}`}
             >
               <div className="flex flex-col items-start">
-                <div className={`w-14 h-14 ${f.bg} ${f.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                  {f.icon}
+                <div className={`w-12 h-12 ${f.bg} ${f.color} rounded-[16px] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className="scale-90">{f.icon}</div>
                 </div>
-                <h4 className="text-xl font-black text-gray-900 mb-2">{f.title}</h4>
-                <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6">{f.desc}</p>
-                <div className={`w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center ${f.color} group-hover:bg-teal-600 group-hover:text-white transition-all`}>
-                   <ArrowRight size={18} />
+                <h4 className="text-lg font-black text-gray-900 mb-1.5">{f.title}</h4>
+                <p className="text-xs text-gray-500 font-medium leading-relaxed mb-5">{f.desc}</p>
+                <div className={`w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center ${f.color} group-hover:bg-teal-600 group-hover:text-white group-hover:border-teal-600 transition-all`}>
+                   <ArrowRight size={14} />
                 </div>
               </div>
             </div>

@@ -36,7 +36,7 @@ export default function Dashboard() {
     const fetchAppointments = async () => {
       try {
         const token = localStorage.getItem("token")
-        const res = await axios.get("http://localhost:5000/api/appointments/my", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/my`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setAppointments(res.data)

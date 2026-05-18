@@ -62,7 +62,7 @@ export default function AIRecommend() {
     setError(null)
     try {
       // Send symptoms text and location to AI recommend endpoint
-      const res = await axios.post("http://localhost:5000/api/aiRecomend/analyze-symptoms", { 
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/aiRecomend/analyze-symptoms`, { 
         symptoms: symptomText,
         lat: userLocation.lat,
         lng: userLocation.lng
@@ -90,7 +90,7 @@ export default function AIRecommend() {
       formData.append("lng", userLocation.lng)
       formData.append("report", reportFile)
       
-      const res = await axios.post("http://localhost:5000/api/aiRecomend/analyze-report", formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/aiRecomend/analyze-report`, formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
           Authorization: "Bearer " + token

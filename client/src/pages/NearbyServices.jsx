@@ -28,7 +28,7 @@ const UserIcon = L.divIcon({
   iconAnchor: [7, 7]
 });
 
-const API = "http://localhost:5000/api"
+const API = `${import.meta.env.VITE_API_URL}/api`
 
 // Component to capture map clicks and update the search location
 function MapClickHandler({ onLocationSelect }) {

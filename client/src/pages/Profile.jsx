@@ -64,9 +64,9 @@ export default function Profile() {
     setLoading(true)
     try {
       const [apptRes, reportRes, prescRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/appointments/my",          { headers: { Authorization: "Bearer " + token } }),
-        axios.get("http://localhost:5000/api/report/my-reports",        { headers: { Authorization: "Bearer " + token } }),
-        axios.get("http://localhost:5000/api/report/my-prescriptions",  { headers: { Authorization: "Bearer " + token } }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/my`,          { headers: { Authorization: "Bearer " + token } }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/report/my-reports`,        { headers: { Authorization: "Bearer " + token } }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/report/my-prescriptions`,  { headers: { Authorization: "Bearer " + token } }),
       ])
       setAppointments(apptRes.data)
       setReports(reportRes.data)
@@ -91,7 +91,7 @@ export default function Profile() {
   // Update user profile information
   const handleSaveProfile = async () => {
     try {
-      const res = await axios.put("http://localhost:5000/api/users/update", editForm, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/users/update`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Update local storage and component state with new user data
@@ -117,7 +117,7 @@ export default function Profile() {
     try {
       const formData = new FormData()
       formData.append("report", file)
-      await axios.post("http://localhost:5000/api/report/upload", formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/report/upload`, formData, {
         headers: { Authorization: "Bearer " + token }
       })
       setUploadSuccess("Report uploaded!")
@@ -137,7 +137,7 @@ export default function Profile() {
     try {
       const formData = new FormData()
       formData.append("prescription", file)
-      await axios.post("http://localhost:5000/api/report/upload-prescription", formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/report/upload-prescription`, formData, {
         headers: { Authorization: "Bearer " + token }
       })
       setUploadSuccess("Prescription uploaded!")
@@ -153,7 +153,7 @@ export default function Profile() {
     if (!window.confirm("Are you sure you want to delete this document?")) return
     try {
       const token = localStorage.getItem("token")
-      await axios.delete(`http://localhost:5000/api/report/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/report/${id}`, {
         headers: { Authorization: "Bearer " + token }
       })
       setUploadSuccess("Document deleted successfully")
@@ -443,7 +443,7 @@ export default function Profile() {
                          <div className="rounded-[32px] overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center min-h-[300px]">
                             {(() => {
                               const cleanPath = selectedFile.fileUrl.replace(/^.*[\\\/]uploads[\\\/]/, '').replace(/^uploads[\\\/]/, '').replace(/^\//, '')
-                              const fullUrl = selectedFile.fileUrl.startsWith('http') ? selectedFile.fileUrl : `http://localhost:5000/uploads/${cleanPath}`.replace(/\\/g, '/')
+                              const fullUrl = selectedFile.fileUrl.startsWith('http') ? selectedFile.fileUrl : `${import.meta.env.VITE_API_URL}/uploads/${cleanPath}`.replace(/\\/g, '/')
                               
                               if (selectedFile.fileUrl.toLowerCase().endsWith('.pdf')) {
                                 return <iframe src={fullUrl} className="w-full h-[600px]" title="PDF Preview" />
@@ -584,7 +584,7 @@ function AppointmentCard({ appt }) {
 }
 
 function FileCard({ file, type, onSelect, onDelete }) {
-  const serverUrl = "http://localhost:5000/"
+  const serverUrl = `${import.meta.env.VITE_API_URL}/`
   const isViewable = file.fileUrl && file.fileUrl !== "N/A" && file.fileUrl !== "AI Processed"
   
   let fullUrl = "#"

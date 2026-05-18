@@ -44,7 +44,7 @@ export default function CancelBooking() {
     const fetchAppt = async () => {
       try {
         const token = localStorage.getItem("token")
-        const res = await axios.get("http://localhost:5000/api/appointments/my", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/my`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const found = res.data.find(a => a._id === id)
@@ -75,12 +75,12 @@ export default function CancelBooking() {
     try {
       const token = localStorage.getItem("token")
       if (rescheduleInterest) {
-        await axios.put(`http://localhost:5000/api/appointments/${id}/reschedule`, 
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/appointments/${id}/reschedule`, 
           { date: newDate, time: newTime },
           { headers: { Authorization: `Bearer ${token}` } }
         )
       } else {
-        await axios.put(`http://localhost:5000/api/appointments/${id}/cancel`, {}, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/appointments/${id}/cancel`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }

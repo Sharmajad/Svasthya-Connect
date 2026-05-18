@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { JitsiMeeting } from '@jitsi/react-sdk'
 import VoiceWaveform from "../components/VoiceWaveform"
 import ECGAnimation from "../components/ECGAnimation"
 import {
@@ -621,8 +622,8 @@ function CallScreen({ doctor, onEnd }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [time, setTime] = useState(0);
-  const roomName = "SvasthyaConnect-" + doctor.name.replace(/\s+/g, "-") + "-" + Math.floor(Math.random() * 1000);
-  const jitsiUrl = "https://meet.jit.si/" + roomName;
+  const roomNameRef = useRef("SvasthyaConnect-" + doctor.name.replace(/\s+/g, "-") + "-" + Math.floor(Math.random() * 1000));
+  const jitsiApiRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setStatus("active"), 3000);
@@ -632,6 +633,13 @@ function CallScreen({ doctor, onEnd }) {
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
+      if (jitsiApiRef.current) {
+        try {
+          jitsiApiRef.current.dispose();
+        } catch (e) {
+          console.error(e);
+        }
+      }
     };
   }, [status]);
 
@@ -640,6 +648,8 @@ function CallScreen({ doctor, onEnd }) {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
     <div className="fixed inset-0 bg-[#081120] z-[1000] flex flex-col overflow-hidden animate-in fade-in duration-500 font-sans">
@@ -691,9 +701,41 @@ function CallScreen({ doctor, onEnd }) {
           {/* Active Speaker Glow */}
           <div className="absolute inset-0 border-[6px] border-indigo-500/20 rounded-[48px] animate-pulse pointer-events-none"></div>
           
-          {/* Jitsi Iframe (Only when active) */}
+          {/* Jitsi SDK (Only when active) */}
           {status === 'active' && (
-            <iframe src={jitsiUrl} className="absolute inset-0 w-full h-full" allow="camera; microphone; fullscreen; display-capture" title="Video Consultation" />
+            <div className="absolute inset-0 w-full h-full rounded-[48px] overflow-hidden">
+              <JitsiMeeting
+                domain="meet.jit.si"
+                roomName={roomNameRef.current}
+                configOverwrite={{
+                  startWithAudioMuted: false,
+                  startWithVideoMuted: false,
+                  prejoinPageEnabled: false,
+                  disableModeratorIndicator: true,
+                  notifications: [],
+                }}
+                interfaceConfigOverwrite={{
+                  DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+                  SHOW_JITSI_WATERMARK: false,
+                }}
+                userInfo={{
+                  displayName: user.name || "Patient",
+                  email: user.email || ""
+                }}
+                onApiReady={(externalApi) => {
+                  jitsiApiRef.current = externalApi;
+                  externalApi.addListener('videoConferenceLeft', () => {
+                    jitsiApiRef.current?.dispose();
+                    onEnd();
+                  });
+                }}
+                getIFrameRef={(iframeRef) => {
+                  iframeRef.style.height = '100%';
+                  iframeRef.style.width = '100%';
+                  iframeRef.style.border = 'none';
+                }}
+              />
+            </div>
           )}
 
           {/* Placeholder/Connecting View */}
@@ -739,13 +781,19 @@ function CallScreen({ doctor, onEnd }) {
           
           <div className="flex items-center gap-6">
             <button 
-              onClick={() => setIsMuted(!isMuted)}
+              onClick={() => {
+                setIsMuted(!isMuted);
+                jitsiApiRef.current?.executeCommand('toggleAudio');
+              }}
               className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group ${isMuted ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
             >
               {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
             </button>
             <button 
-              onClick={() => setIsVideoOff(!isVideoOff)}
+              onClick={() => {
+                setIsVideoOff(!isVideoOff);
+                jitsiApiRef.current?.executeCommand('toggleVideo');
+              }}
               className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group ${isVideoOff ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
             >
               {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
@@ -765,7 +813,13 @@ function CallScreen({ doctor, onEnd }) {
               <MessageSquare size={24} />
             </button>
             <button 
-              onClick={onEnd}
+              onClick={() => {
+                jitsiApiRef.current?.executeCommand('hangup');
+                setTimeout(() => {
+                  jitsiApiRef.current?.dispose();
+                  onEnd();
+                }, 500);
+              }}
               className="bg-red-600 hover:bg-red-700 text-white px-10 h-16 rounded-3xl font-black text-[11px] uppercase tracking-[2px] transition-all shadow-2xl shadow-red-900/40 flex items-center gap-4 hover:scale-105 active:scale-95"
             >
               <Phone className="rotate-[135deg]" size={20} /> End Call
